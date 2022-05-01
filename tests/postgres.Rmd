@@ -1,0 +1,75 @@
+---
+title: "Postgresql"
+author: "Tyler Neumann"
+date: "5/1/2022"
+output: html_document
+---
+
+```{r libs}
+library(dbUpsert)
+```
+
+```{r rm_con}
+if (exists("db_con") == TRUE){
+  dbDisconnect(db_con)
+  rm(db_con)
+}
+```
+
+## Start Postgres Docker Container ##
+
+First, stop and remove container if it is currently running.
+
+```{bash stop_container}
+docker ps -q --filter "name=eg_postgres" | grep -q . && docker stop eg_postgres && docker rm -fv eg_postgres
+```
+
+Then start the container.
+
+```{bash start_container}
+docker run --name eg_postgres -p 5432:5432 -e POSTGRES_PASSWORD=My1secretpassword -d postgres
+```
+
+## Open Connection to Postgres ##
+
+The postgres Docker Container is very quick to start up, but still requires ~1 second to wait before trying to open a connection.
+
+```{r mysql_con}
+Sys.sleep(1)
+
+db_con <- dbConnect(
+  RPostgres::Postgres(),
+  host = "localhost",
+  user = "postgres",
+  password = "My1secretpassword",
+  port = 5432,
+  dbname = "postgres"
+)
+
+db_info <- list(
+  rdbms = db_con |> class() |> as.character(),
+  version = db_con |> dbVersion()
+)
+
+db_info
+```
+
+## Validate DB Interface ##
+
+```{r}
+df1 <- data.frame(
+  var_one = 1:10,
+  var_two = rnorm(10)
+)
+
+dbWriteTable(
+  conn = db_con,
+  name = "test_one",
+  value = df1,
+  overwrite = T
+)
+```
+
+```{r}
+dbReadTable(db_con, "test_one")
+```

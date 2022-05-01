@@ -1,0 +1,76 @@
+---
+title: "MS SQL"
+author: "Tyler Neumann"
+date: "5/1/2022"
+output: html_document
+---
+
+```{r libs}
+library(dbUpsert)
+```
+
+```{r rm_con}
+if (exists("db_con") == TRUE){
+  dbDisconnect(db_con)
+  rm(db_con)
+}
+```
+
+## Start MS SQL Docker Container ##
+
+First, stop and remove container if it is currently running.
+
+```{bash stop_container}
+docker ps -q --filter "name=eg_mssql" | grep -q . && docker stop eg_mssql && docker rm -fv eg_mssql
+```
+
+Then start the container.
+
+```{bash start_container}
+docker run --name eg_mssql -p 1433:1433 -e ACCEPT_EULA=Y -e SA_PASSWORD=My1secretpassword -d mcr.microsoft.com/mssql/server:2019-latest
+```
+
+## Open Connection to MS SQL ##
+
+The MS SQL Docker container take a few seconds to complete the start up process before being able to connect. We must wait ~10 seconds before trying to connect.
+
+```{r mysql_con}
+Sys.sleep(10)
+
+db_con <- dbConnect(
+  odbc::odbc(),
+  driver = "ODBC Driver 17 for SQL Server",
+  server = "localhost",
+  uid = "sa",
+  pwd = "My1secretpassword",
+  port = 1433,
+  database = "master"
+)
+
+db_info <- list(
+  rdbms = db_con |> class() |> as.character(),
+  version = db_con |> dbVersion()
+)
+
+db_info
+```
+
+## Validate DB Interface ##
+
+```{r}
+df1 <- data.frame(
+  var_one = 1:10,
+  var_two = rnorm(10)
+)
+
+dbWriteTable(
+  conn = db_con,
+  name = "test_one",
+  value = df1,
+  overwrite = T
+)
+```
+
+```{r}
+dbReadTable(db_con, "test_one")
+```
