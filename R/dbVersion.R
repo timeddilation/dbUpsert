@@ -12,14 +12,14 @@
 dbVersion <- function(conn) {
   rdbms <- conn |> class() |> as.character()
 
-  sql_version <- "unknown"
-
   if (rdbms == "PqConnection") {
-    sql_version <- dbGetInfo(conn)[["db.version"]]
+    return(dbGetInfo(conn)[["db.version"]])
   } else if (rdbms == "MySQLConnection") {
-    sql_version <- dbGetInfo(conn)[["serverVersion"]]
+    return(dbGetInfo(conn)[["serverVersion"]])
   } else if (rdbms == "Microsoft SQL Server") {
-    sql_version <- dbGetInfo(conn)[["db.version"]]
+    return(dbGetInfo(conn)[["db.version"]])
+  } else {
+    return("unknown")
   }
 
   return(sql_version)

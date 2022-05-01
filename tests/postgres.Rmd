@@ -34,7 +34,7 @@ docker run --name eg_postgres -p 5432:5432 -e POSTGRES_PASSWORD=My1secretpasswor
 
 The postgres Docker Container is very quick to start up, but still requires ~1 second to wait before trying to open a connection.
 
-```{r mysql_con}
+```{r sql_con}
 Sys.sleep(1)
 
 db_con <- dbConnect(
@@ -56,7 +56,7 @@ db_info
 
 ## Validate DB Interface ##
 
-```{r}
+```{r write_table}
 df1 <- data.frame(
   var_one = 1:10,
   var_two = rnorm(10)
@@ -70,6 +70,37 @@ dbWriteTable(
 )
 ```
 
-```{r}
+```{r read_table}
 dbReadTable(db_con, "test_one")
 ```
+
+# Set up Test Table #
+
+```{sql, connection = db_con}
+CREATE TABLE upsert_one (
+    id INT NOT NULL
+        CONSTRAINT upsert_one_pkey PRIMARY KEY,
+    val_a NUMERIC NOT NULL,
+    val_b VARCHAR(512) NULL
+);
+```
+
+```{sql, connection = db_con}
+CREATE TABLE "upsert two" (
+    id INT NOT NULL
+        CONSTRAINT upsert_two_pkey PRIMARY KEY,
+    "val a" NUMERIC NOT NULL,
+    "val b" VARCHAR(512) NULL
+);
+```
+
+```{r}
+test_one <- df1
+names(test_one) <- c("id", "val_a")
+dbAppendTable(db_con, "upsert_one", test_one)
+
+test_two <- df1
+names(test_two) <- c("id", "val a")
+dbAppendTable(db_con, "upsert two", test_two)
+```
+

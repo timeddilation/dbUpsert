@@ -34,7 +34,7 @@ docker run --name eg_mssql -p 1433:1433 -e ACCEPT_EULA=Y -e SA_PASSWORD=My1secre
 
 The MS SQL Docker container take a few seconds to complete the start up process before being able to connect. We must wait ~10 seconds before trying to connect.
 
-```{r mysql_con}
+```{r sql_con}
 Sys.sleep(10)
 
 db_con <- dbConnect(
@@ -57,7 +57,7 @@ db_info
 
 ## Validate DB Interface ##
 
-```{r}
+```{r write_table}
 df1 <- data.frame(
   var_one = 1:10,
   var_two = rnorm(10)
@@ -71,6 +71,6 @@ dbWriteTable(
 )
 ```
 
-```{r}
+```{r read_table}
 dbReadTable(db_con, "test_one")
 ```

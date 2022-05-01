@@ -34,7 +34,7 @@ docker run --name eg_mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=My1secretpassword
 
 The MySQL Docker container take a few seconds to complete the start up process before being able to connect. We must wait ~15 seconds before trying to connect.
 
-```{r mysql_con}
+```{r sql_con}
 Sys.sleep(15)
 
 db_con <- dbConnect(
@@ -64,7 +64,7 @@ SET GLOBAL local_infile = 1
 
 ## Validate DB Interface ##
 
-```{r}
+```{r write_table}
 df1 <- data.frame(
   var_one = 1:10,
   var_two = rnorm(10)
@@ -78,6 +78,6 @@ dbWriteTable(
 )
 ```
 
-```{r}
+```{r read_table}
 dbReadTable(db_con, "test_one")
 ```
