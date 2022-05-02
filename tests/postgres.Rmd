@@ -94,6 +94,16 @@ CREATE TABLE "upsert two" (
 );
 ```
 
+```{sql, connection = db_con}
+CREATE TABLE upsert_comp_key (
+  id_a INT NOT NULL,
+  id_b INT NOT NULL,
+  id_c INT NOT NULL,
+  val_a INT NOT NULL,
+  PRIMARY KEY (id_a, id_b, id_c)
+)
+```
+
 ```{r}
 test_one <- df1
 names(test_one) <- c("id", "val_a")
