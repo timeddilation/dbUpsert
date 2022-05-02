@@ -6,9 +6,8 @@ dbUpsertTable <- function(
   value,
   stage_table = NULL,
   overwrite_stage_table = TRUE,
-  debug_mode = T
+  verbose = F
 ) {
-  debug_internal <- list()
   ##############################################################################
   # check if table exists
   ##############################################################################
@@ -19,7 +18,18 @@ dbUpsertTable <- function(
   ##############################################################################
   # Get primary key column(s) from table
   ##############################################################################
+  if (verbose == TRUE) {
+    cat("Querying table primary key columns\n")
+  }
   value_pkey <- dbTablePkey(conn, name)
+
+  if (verbose == TRUE) {
+    cat(paste0(
+      "  ",
+      paste0(value_pkey, collapse = ",\n  "),
+      "\n"
+    ))
+  }
 
   ### Check if all PKs are provided in value
   missing_pkey_cols <- value_pkey[! value_pkey %in% names(value)]
@@ -45,13 +55,9 @@ dbUpsertTable <- function(
   }
   rm(value_pkey_provided, duplicated_pkey)
 
-  ### track the identified pkey columns
-  debug_internal <- c(debug_internal, list("pkey" = value_pkey))
-
-
   ### check for any duplicate keys, cannot do upserts
-  provided_rows <- value[, value_pkey] |> nrow()
-  provided_unique_rows <- value[, value_pkey] |> unique() |> nrow()
+  provided_rows <- value[, value_pkey, drop = FALSE] |> nrow()
+  provided_unique_rows <- value[, value_pkey, drop = FALSE] |> unique() |> nrow()
 
   if (provided_rows > provided_unique_rows) {
     stop("More than one row with the same primary key cannot be upserted.")
@@ -94,11 +100,9 @@ dbUpsertTable <- function(
   if (is.null(stage_table) == TRUE) {
     stage_table <- paste0("stage_", name)
   }
-  debug_internal <- c(debug_internal, list("stage_table" = stage_table))
-
-  if (debug_mode == TRUE) {
-    return(debug_internal)
-  } else {
-    return(TRUE)
+  if (verbose == TRUE) {
+    cat(paste0("Writing data to staging table: ", stage_table, "\n"))
   }
+
+  return(TRUE)
 }
