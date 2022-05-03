@@ -1,4 +1,8 @@
 #' Upsert data.frame to SQL DB
+#'
+#' Only works with primary keys, not identities/sequences
+#' Will never update primary keys
+#'
 
 dbUpsertTable <- function(
   conn,
@@ -64,11 +68,42 @@ dbUpsertTable <- function(
   }
   rm(provided_rows, provided_unique_rows)
   ##############################################################################
-  # TODO: Get non-pk columns and nullability
+  # Get extended columns data
   ##############################################################################
+  if (verbose == TRUE) {
+    cat("Querying table column info\n")
+  }
+  table_cols <- dbColumnInfoExtended(conn, name)
+  table_cols <- table_cols[!table_cols$column_name %in% value_pkey, ]
+
+  if (verbose == TRUE) {
+    cat(paste0(
+      "  ",
+      paste0(
+        table_cols$column_name,
+        " (", table_cols$data_type, ") ",
+        ifelse(table_cols$is_nullable == TRUE, "NULL", "NOT NULL")
+      ) |> paste0(collapse = "\n  "),
+      "\n"
+    ))
+  }
 
   ##############################################################################
-  # TODO: Check all not-nulls are provided
+  # Check all not-nulls are provided
+  ##############################################################################
+  target_not_nulls <- table_cols[table_cols$is_nullable == FALSE, "column_name"]
+  missing_not_nulls <- target_not_nulls[!target_not_nulls %in% names(value)]
+
+  if (length(missing_not_nulls) > 0) {
+    stop(paste0(
+      "Not nullable columns are missing, cannot insert with missing values: ",
+      paste0(missing_not_nulls, collapse = ", ")
+    ))
+  }
+  rm(target_not_nulls, missing_not_nulls)
+
+  ##############################################################################
+  # TODO: Check all not nulls all have values, no NA's
   ##############################################################################
 
   ##############################################################################
