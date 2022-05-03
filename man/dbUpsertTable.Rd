@@ -9,9 +9,11 @@ dbUpsertTable(
   name,
   value,
   stage_table = NULL,
-  overwrite_stage_table = TRUE
+  overwrite_stage_table = TRUE,
+  verbose = FALSE
 )
 }
 \description{
-Upsert data.frame to SQL DB
+Only works with primary keys, not identities/sequences
+Will never update primary keys
 }

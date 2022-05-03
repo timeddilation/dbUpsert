@@ -10,8 +10,11 @@ dbUpsertTable <- function(
   value,
   stage_table = NULL,
   overwrite_stage_table = TRUE,
-  verbose = F
+  verbose = FALSE
 ) {
+  # TODO: Known issue when DB columns have spaces. R data.frame replaces spaces with `.`
+  ## Need to be able to gsub() . with spaces effectively for comparisons to work correctly
+
   ##############################################################################
   # check if table exists
   ##############################################################################
@@ -107,8 +110,21 @@ dbUpsertTable <- function(
   ##############################################################################
 
   ##############################################################################
-  # TODO: Remove columns not in target table
+  # Remove columns not in target table
   ##############################################################################
+  all_target_cols <- c(value_pkey, table_cols$column_name)
+  cols_not_exist <- names(value)[!names(value) %in% all_target_cols]
+
+  if (length(cols_not_exist) > 0) {
+    value[cols_not_exist] <- NULL
+
+    warning(paste0(
+      "The following provided columns do not exist in the DB table: ",
+      paste0(cols_not_exist, collapse = ", "),
+      ". These columns will be removed before upserting to DB."
+    ))
+  }
+  rm(cols_not_exist)
 
   ##############################################################################
   # Check for duplicated column names
@@ -125,9 +141,17 @@ dbUpsertTable <- function(
     ))
   }
   ##############################################################################
-  # TODO: Create vectors for insert and update cols
+  # Create vectors for insert and update cols
   ##############################################################################
+  insert_cols <- names(value)
+  update_cols <- names(value)[! names(value) %in% value_pkey]
 
+  if (verbose == TRUE) {
+    cat(paste0(
+      "Columns being inserted: ", paste0(insert_cols, collapse = ", "), "\n",
+      "Columns being updated: ", paste0(update_cols, collapse = ", "), "\n"
+    ))
+  }
 
   ##############################################################################
   # set staging table name
@@ -138,6 +162,47 @@ dbUpsertTable <- function(
   if (verbose == TRUE) {
     cat(paste0("Writing data to staging table: ", stage_table, "\n"))
   }
+
+  ##############################################################################
+  # Write data to staging table
+  ##############################################################################
+  dbWriteTable(
+    conn = conn,
+    name = stage_table,
+    value = value,
+    overwrite = overwrite_stage_table
+  )
+
+  ##############################################################################
+  # create upsert statement, cat if verbose, send statement
+  ##############################################################################
+  upsert_statement <- dbUpsertStatement(
+    conn = conn,
+    target_table = name,
+    staging_table = stage_table,
+    table_pkey = value_pkey,
+    insert_cols = insert_cols,
+    update_cols = update_cols
+  )
+
+  if (verbose == TRUE) {
+    cat(paste0(
+      "Generated SQL Upsert Command:\n<SQL>\n",
+      upsert_statement,
+      "\n</SQL>\n"
+    ))
+  }
+
+  upsert_res <- dbSendStatement(
+    conn = conn,
+    statement = upsert_statement
+  )
+  dbClearResult(upsert_res)
+
+  ##############################################################################
+  # Drop staging table
+  ##############################################################################
+  dbRemoveTable(conn, stage_table)
 
   return(TRUE)
 }
