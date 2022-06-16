@@ -17,19 +17,6 @@ dbUpsertStatement_postgres <- function(
   insert_cols,
   update_cols
 ) {
-  require(glue)
-
-  sql_statement <- "
-    INSERT INTO {target_table} (
-      {insert_cols}
-    )
-    SELECT
-      {insert_cols}
-    FROM {staging_table}
-    ON CONFLICT ({table_pkey}) DO UPDATE SET
-      {update_cols}
-    ;"
-
   target_table <- dbQuoteIdentifier(
     conn = conn,
     x = target_table
@@ -57,13 +44,21 @@ dbUpsertStatement_postgres <- function(
   update_cols <- dbQuoteIdentifier(
     conn = conn,
     x = update_cols
-  ) |> as.character()
+  ) |>
+    as.character() |>
+    {\(x) paste0(x, " = excluded.", x)}() |>
+    paste0(collapse = "\n  ,")
 
-  update_cols <- paste0(
-    update_cols, " = excluded.", update_cols
-  ) |> paste0(collapse = "\n  ,")
-
-  upsert_statement <- glue::glue(sql_statement)
+  upsert_statement <- paste0(
+    "INSERT INTO ", target_table, "(\n",
+    "  ", insert_cols, "\n",
+    ")\n",
+    "SELECT\n",
+    "  ", insert_cols, "\n",
+    "FROM ", staging_table, "\n",
+    "ON CONFLICT (", table_pkey, ") DO UPDATE SET\n",
+    "  ", update_cols
+  )
 
   return(upsert_statement)
 }

@@ -15,7 +15,6 @@ dbUpsertStatement <- function(
   insert_cols,
   update_cols
 ) {
-  require(glue)
   rdbms <- conn |> class() |> as.character()
 
   if (rdbms == "PqConnection") {
