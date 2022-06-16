@@ -3,6 +3,12 @@
 #' Only works with primary keys, not identities/sequences
 #' Will never update primary keys
 #'
+#' @param conn A DBI Connection Object
+#' @param name A table name in the DB to upsert to
+#' @param value A dataframe object containing data to upsert
+#' @param staging_table A string of the table name to create to stage data. If not provided, a new table name will be generated.
+#' @param overwrite_stage_table A boolean indicating if you want to drop the staging table (if it already exists). If it does already exist, and this value is `false`, then the upsert will fail.
+#' @param verbose A boolean indicating whether or not to print steps executed in the console
 
 dbUpsertTable <- function(
   conn,
@@ -12,8 +18,10 @@ dbUpsertTable <- function(
   overwrite_stage_table = TRUE,
   verbose = FALSE
 ) {
-  # TODO: Known issue when DB columns have spaces. R data.frame replaces spaces with `.`
-  ## Need to be able to gsub() . with spaces effectively for comparisons to work correctly
+  # TODO: Separate function to check if a table can be upserted
+  ## report all reasons why it can or cannot
+  # TODO: Check db version before executing. Syntax used is only available in certain versions.
+  # TODO: Check if table has non-updatable columns, remove these from upsert statement
 
   ##############################################################################
   # check if table exists
@@ -91,6 +99,18 @@ dbUpsertTable <- function(
     ))
   }
 
+  ##############################################################################
+  # check if any identity generation is always
+  ##############################################################################
+  always_generated_ids <- table_cols[table_cols$can_insert_id == FALSE, "column_name"]
+
+  if (length(always_generated_ids) > 0) {
+    stop(paste0(
+      "Cannot upsert to table with always generated identities. ",
+      "Consider two separate commands to `dbAppendTable` then `dbUpdateTable` instead."
+    ))
+  }
+  rm(always_generated_ids)
   ##############################################################################
   # Check all not-nulls are provided
   ##############################################################################

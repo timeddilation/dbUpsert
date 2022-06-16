@@ -16,7 +16,8 @@ dbColumnInfoExtended <- function(conn, name) {
           CASE is_nullable WHEN 'NO' THEN FALSE ELSE TRUE END AS is_nullable,
           CASE is_identity WHEN 'NO' THEN FALSE ELSE TRUE END AS is_identity,
           CASE is_generated WHEN 'NO' THEN FALSE ELSE TRUE END AS is_generated,
-          CASE is_updatable WHEN 'NO' THEN FALSE ELSE TRUE END AS is_updatable
+          CASE is_updatable WHEN 'NO' THEN FALSE ELSE TRUE END AS is_updatable,
+          CASE identity_generation WHEN 'ALWAYS' THEN FALSE ELSE TRUE END AS can_insert_id
         FROM information_schema.columns
         WHERE table_name = $1;",
       params = list(name)
