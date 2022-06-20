@@ -6,7 +6,7 @@
 #' @param join_cols A character vector of column names used as the primary key
 #' @param update_cols A character vector of column names to update, should exclude the PKs
 
-dbUpdateStatement <- function(
+.dbUpdateStatement <- function(
   conn,
   target_table,
   staging_table,
@@ -16,7 +16,7 @@ dbUpdateStatement <- function(
   rdbms <- conn |> class() |> as.character()
 
   if (rdbms == "PqConnection") {
-    return(dbUpdateStatement_postgres(
+    return(.dbUpdateStatement_postgres(
       conn,
       target_table,
       staging_table,

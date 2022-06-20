@@ -13,6 +13,19 @@ dbUpsertTable(
   verbose = FALSE
 )
 }
+\arguments{
+\item{conn}{A DBI Connection Object}
+
+\item{name}{A table name in the DB to upsert to}
+
+\item{value}{A dataframe object containing data to upsert}
+
+\item{overwrite_stage_table}{A boolean indicating if you want to drop the staging table (if it already exists). If it does already exist, and this value is `false`, then the upsert will fail.}
+
+\item{verbose}{A boolean indicating whether or not to print steps executed in the console}
+
+\item{staging_table}{A string of the table name to create to stage data. If not provided, a new table name will be generated.}
+}
 \description{
 Only works with primary keys, not identities/sequences
 Will never update primary keys

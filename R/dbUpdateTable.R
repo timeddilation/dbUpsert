@@ -24,7 +24,7 @@ dbUpdateTable <- function(
     if (verbose == TRUE) {
       cat("Querying table primary key columns\n")
     }
-    value_pkey <- dbTablePkey(conn, name)
+    value_pkey <- .dbTablePkey(conn, name)
 
     if (verbose == TRUE) {
       cat(paste0(
@@ -142,7 +142,7 @@ dbUpdateTable <- function(
   ##############################################################################
   # Send update statement
   ##############################################################################
-  update_statement <- dbUpdateStatement(
+  update_statement <- .dbUpdateStatement(
     conn = conn,
     target_table = name,
     staging_table = stage_table,

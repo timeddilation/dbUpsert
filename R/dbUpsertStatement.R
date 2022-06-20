@@ -7,7 +7,7 @@
 #' @param insert_cols A character vector of column names to insert, should include the PKs
 #' @param update_cols A character vector of column names to update, should exclude the PKs
 
-dbUpsertStatement <- function(
+.dbUpsertStatement <- function(
   conn,
   target_table,
   staging_table,
@@ -18,7 +18,7 @@ dbUpsertStatement <- function(
   rdbms <- conn |> class() |> as.character()
 
   if (rdbms == "PqConnection") {
-    return(dbUpsertStatement_postgres(
+    return(.dbUpsertStatement_postgres(
       conn,
       target_table,
       staging_table,

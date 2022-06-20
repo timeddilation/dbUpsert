@@ -1,6 +1,6 @@
 #' Generate Upsert SQL Statement for Postgres
 #'
-#' Should not be called directly. Use `dbUpsertStatement()` instead.
+#' Should not be called directly. Use `.dbUpsertStatement()` instead.
 #'
 #' @param conn A DBI Connection Object
 #' @param target_table A table name in the DB to upsert to
@@ -9,7 +9,7 @@
 #' @param insert_cols A character vector of column names to insert, should include the PKs
 #' @param update_cols A character vector of column names to update, should exclude the PKs
 
-dbUpsertStatement_postgres <- function(
+.dbUpsertStatement_postgres <- function(
   conn,
   target_table,
   staging_table,

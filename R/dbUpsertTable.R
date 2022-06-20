@@ -36,7 +36,7 @@ dbUpsertTable <- function(
   if (verbose == TRUE) {
     cat("Querying table primary key columns\n")
   }
-  value_pkey <- dbTablePkey(conn, name)
+  value_pkey <- .dbTablePkey(conn, name)
 
   if (verbose == TRUE) {
     cat(paste0(
@@ -201,7 +201,7 @@ dbUpsertTable <- function(
   ##############################################################################
   # create upsert statement, cat if verbose, send statement
   ##############################################################################
-  upsert_statement <- dbUpsertStatement(
+  upsert_statement <- .dbUpsertStatement(
     conn = conn,
     target_table = name,
     staging_table = stage_table,

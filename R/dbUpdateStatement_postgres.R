@@ -1,4 +1,4 @@
-dbUpdateStatement_postgres <- function(
+.dbUpdateStatement_postgres <- function(
   conn,
   target_table,
   staging_table,

@@ -3,7 +3,7 @@
 #' @param conn A DBI Connection Object
 #' @param name A table name in the DB
 
-dbTablePkey_postgres <- function(conn, name) {
+.dbTablePkey_postgres <- function(conn, name) {
   dbGetQuery(
     conn = conn,
     statement = "
