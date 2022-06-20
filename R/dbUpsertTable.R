@@ -58,7 +58,9 @@ dbUpsertTable <- function(
   }
   rm(missing_pkey_cols)
 
-  ### check if any pkeys columns are duplicated in provided data
+  ##############################################################################
+  # Check if any pkeys columns are duplicated in provided data
+  ##############################################################################
   value_pkey_provided <- names(value)[names(value) %in% value_pkey]
   duplicated_pkey <- value_pkey_provided[duplicated(value_pkey_provided)]
 
@@ -70,7 +72,9 @@ dbUpsertTable <- function(
   }
   rm(value_pkey_provided, duplicated_pkey)
 
-  ### check for any duplicate keys, cannot do upserts
+  ##############################################################################
+  # Check for any duplicate keys, cannot do upserts
+  ##############################################################################
   provided_rows <- value[, value_pkey, drop = FALSE] |> nrow()
   provided_unique_rows <- value[, value_pkey, drop = FALSE] |> unique() |> nrow()
 
@@ -78,6 +82,7 @@ dbUpsertTable <- function(
     stop("More than one row with the same primary key cannot be upserted.")
   }
   rm(provided_rows, provided_unique_rows)
+
   ##############################################################################
   # Get extended columns data
   ##############################################################################
