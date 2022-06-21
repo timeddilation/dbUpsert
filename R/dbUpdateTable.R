@@ -17,9 +17,37 @@ dbUpdateTable <- function(
   }
 
   ##############################################################################
-  # Get primary key column(s) from table if `join_on` is not provided
+  # Try to guess `join_on` if not provided explicitly
   ##############################################################################
-  # if join_on is not provided, it will assume the value of the PKs
+  table_cols <- dbColumnInfoExtended(conn, name)
+
+  # first, check if there is an identity column, and use the identity column
+  if (is.null(join_on)) {
+    if (verbose == TRUE) {
+      cat("Checking for identity column\n")
+    }
+
+    identity_col <- table_cols[table_cols$is_identity == TRUE, "column_name"]
+
+    if (length(identity_col) > 0) {
+      join_on <- identity_col
+
+      if (verbose == TRUE) {
+        cat(paste0(
+          "  ",
+          paste0(identity_col, collapse = ",\n  "),
+          "\n"
+        ))
+      }
+    } else {
+      if (verbose == TRUE) {
+        cat("No identity column found\n")
+      }
+    }
+    rm(identity_col)
+  }
+
+  # if there are no identity columns, then check for primary keys
   if (is.null(join_on)) {
     if (verbose == TRUE) {
       cat("Querying table primary key columns\n")
@@ -34,24 +62,13 @@ dbUpdateTable <- function(
       ))
     }
 
-    ### Check if all PKs are provided in value
-    missing_pkey_cols <- value_pkey[! value_pkey %in% names(value)]
-
-    if (length(missing_pkey_cols) > 0) {
-      stop(paste0(
-        "Table primary key column(s) `",
-        paste0(missing_pkey_cols, collapse = ", "),
-        "` was not provided. "
-      ))
-    }
     join_on <- value_pkey
-    rm(missing_pkey_cols, value_pkey)
+    rm(value_pkey)
   }
 
   ##############################################################################
   # Check if all values for join_on are in the target SQL table
   ##############################################################################
-  table_cols <- dbColumnInfoExtended(conn, name)
   join_on_missing <- join_on[!join_on %in% table_cols$column_name]
 
   if (length(join_on_missing) > 0) {
@@ -60,6 +77,20 @@ dbUpdateTable <- function(
       paste0(join_on_missing, collapse = ", ")
     ))
   }
+  rm(join_on_missing)
+
+  ##############################################################################
+  # Check if all values for join_on are in the provided value table
+  ##############################################################################
+  join_on_missing <- join_on[!join_on %in% names(value)]
+
+  if (length(join_on_missing) > 0) {
+    stop(paste0(
+      "The following columns were specified to join on, but are not in the provided `value` table: ",
+      paste0(join_on_missing, collapse = ", ")
+    ))
+  }
+  rm(join_on_missing)
 
   ##############################################################################
   # Check if any of the join_on values are duplicated

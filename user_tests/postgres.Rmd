@@ -309,7 +309,7 @@ CREATE TABLE update_one(
 );
 ```
 
-Second, we'll create a table and be lazy about creating a primary key, but not creating a primary key:
+Second, we'll create a table with a primary key instead of a generated identity:
 
 ```{sql, connection = db_con}
 DROP TABLE IF EXISTS update_two;
@@ -317,6 +317,21 @@ DROP TABLE IF EXISTS update_two;
 
 ```{sql, connection = db_con}
 CREATE TABLE update_two(
+    id INT NOT NULL
+      CONSTRAINT update_two_pkey PRIMARY KEY,
+    val_a NUMERIC NOT NULL,
+    val_b NUMERIC NOT NULL
+);
+```
+
+Third, we'll create a table and be lazy about creating a primary key, but not creating a primary key:
+
+```{sql, connection = db_con}
+DROP TABLE IF EXISTS update_three;
+```
+
+```{sql, connection = db_con}
+CREATE TABLE update_three(
     tran_date DATE NOT NULL,
     customer_id INT NOT NULL,
     val_b NUMERIC NOT NULL
@@ -349,10 +364,72 @@ updated_data
 ```
 
 ```{r}
-dbWriteTable(
+dbUpdateTable(
   conn = db_con,
-  name = "stage_update_one",
+  name = "update_one",
   value = updated_data,
-  overwrite = T
+  verbose = T
 )
 ```
+
+```{sql, connection = db_con}
+SELECT * FROM update_one ORDER BY id
+```
+
+There's also no limitation on how many column values can be updated at once. 
+Let's run the update again, but this time provide new values for both `val_a` and `val_b`
+
+```{r}
+updated_data <- data.frame(id = 6:10, val_a = rnorm(5), val_b = rnorm(5))
+updated_data
+```
+
+```{r}
+dbUpdateTable(
+  conn = db_con,
+  name = "update_one",
+  value = updated_data,
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_one ORDER BY id
+```
+
+## Updating a table with a primary key ##
+
+This will work very similarly to updating a table with an identity.
+We'll simply replicate the second scenario we performed for the table with an identity.
+
+```{r}
+dbAppendTable(
+  conn = db_con,
+  name = "update_two",
+  value = data.frame(id = 1:10, val_a = rnorm(10), val_b = rnorm(10))
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_two ORDER BY id
+```
+
+```{r}
+updated_data <- data.frame(id = 6:10, val_a = rnorm(5), val_b = rnorm(5))
+updated_data
+```
+
+```{r}
+dbUpdateTable(
+  conn = db_con,
+  name = "update_two",
+  value = updated_data,
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_two ORDER BY id
+```
+
+## Updating a table without an identity or primary key ##
