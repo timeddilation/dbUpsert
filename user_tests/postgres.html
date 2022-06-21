@@ -11,7 +11,7 @@
 
 <meta name="author" content="Tyler Neumann" />
 
-<meta name="date" content="2022-06-17" />
+<meta name="date" content="2022-06-22" />
 
 <title>Postgresql</title>
 
@@ -365,7 +365,7 @@ pre code {
 
 <h1 class="title toc-ignore">Postgresql</h1>
 <h4 class="author">Tyler Neumann</h4>
-<h4 class="date">2022-06-17</h4>
+<h4 class="date">2022-06-22</h4>
 
 </div>
 
@@ -384,7 +384,7 @@ pre code {
 ## eg_postgres</code></pre>
 <p>Then start the container.</p>
 <pre class="bash"><code>docker run --name eg_postgres -p 5432:5432 -e POSTGRES_PASSWORD=My1secretpassword -d postgres</code></pre>
-<pre><code>## f1643ab3fb46bcf9bf4923997b7cbe4cc4a39a8dc0c21f1b7a1e8e8495e4b566</code></pre>
+<pre><code>## 04a8879efc3124fea80531673d3fdfd18015bc24ff2837f516b3214bff19a1a3</code></pre>
 </div>
 <div id="open-connection-to-postgres" class="section level2">
 <h2>Open Connection to Postgres</h2>
@@ -429,17 +429,17 @@ dbWriteTable(
   overwrite = T
 )</code></pre>
 <pre class="r"><code>dbReadTable(db_con, &quot;test_one&quot;)</code></pre>
-<pre><code>##    var_one    var_two
-## 1        1 -2.2119337
-## 2        2  0.1458948
-## 3        3  0.9753840
-## 4        4 -0.6545742
-## 5        5  1.6318693
-## 6        6 -0.7689685
-## 7        7 -0.4869236
-## 8        8  0.7536503
-## 9        9 -0.4275338
-## 10      10  0.3512336</code></pre>
+<pre><code>##    var_one     var_two
+## 1        1 -0.14824298
+## 2        2  0.87529846
+## 3        3  0.07711605
+## 4        4  0.94621608
+## 5        5 -0.25478289
+## 6        6  0.98039799
+## 7        7  0.14734821
+## 8        8 -0.74513309
+## 9        9 -1.44693037
+## 10      10 -1.19676389</code></pre>
 </div>
 <div id="set-up-test-table" class="section level1">
 <h1>Set up Test Table</h1>
@@ -496,52 +496,52 @@ database.</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">-2.2119337</td>
+<td align="right">-0.1482430</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">0.1458948</td>
+<td align="right">0.8752985</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">0.9753840</td>
+<td align="right">0.0771160</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">-0.6545742</td>
+<td align="right">0.9462161</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">1.6318693</td>
+<td align="right">-0.2547829</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">-0.7689685</td>
+<td align="right">0.9803980</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">-0.4869236</td>
+<td align="right">0.1473482</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">0.7536503</td>
+<td align="right">-0.7451331</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">-0.4275338</td>
+<td align="right">-1.4469304</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">0.3512336</td>
+<td align="right">-1.1967639</td>
 <td align="left">NA</td>
 </tr>
 </tbody>
@@ -565,9 +565,8 @@ see how the package is interacting with the SQL database.</p>
 ##   val_b (character varying) NULL
 ## Columns being inserted: id, val_a
 ## Columns being updated: val_a
-## Writing data to staging table: stage_upsert_one</code></pre>
-<pre><code>## Loading required package: glue</code></pre>
-<pre><code>## Generated SQL Upsert Command:
+## Writing data to staging table: stage_upsert_one
+## Generated SQL Upsert Command:
 ## &lt;SQL&gt;
 ## INSERT INTO &quot;upsert_one&quot;(
 ##   &quot;id&quot;
@@ -579,7 +578,8 @@ see how the package is interacting with the SQL database.</p>
 ## FROM &quot;stage_upsert_one&quot;
 ## ON CONFLICT (&quot;id&quot;) DO UPDATE SET
 ##   &quot;val_a&quot; = excluded.&quot;val_a&quot;
-## &lt;/SQL&gt;</code></pre>
+## &lt;/SQL&gt;
+## Dropping staging table: stage_upsert_one</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <pre class="sql"><code>SELECT * FROM upsert_one</code></pre>
 <div class="knitsql-table">
@@ -595,52 +595,52 @@ see how the package is interacting with the SQL database.</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">2.1145907</td>
+<td align="right">0.2485139</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">-1.8313455</td>
+<td align="right">2.2338169</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">0.3005977</td>
+<td align="right">-1.1159216</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">0.4990137</td>
+<td align="right">1.8210691</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">-0.5955390</td>
+<td align="right">-0.2891427</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">0.9044225</td>
+<td align="right">-0.5494844</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">0.4089161</td>
+<td align="right">-0.5028575</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">0.6407145</td>
+<td align="right">0.5223484</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">-0.0714555</td>
+<td align="right">-1.2949555</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">-1.4724734</td>
+<td align="right">-0.3720191</td>
 <td align="left">NA</td>
 </tr>
 </tbody>
@@ -687,7 +687,8 @@ those columns from the dataframe value before staging the data.</p>
 ## ON CONFLICT (&quot;id&quot;) DO UPDATE SET
 ##   &quot;val_a&quot; = excluded.&quot;val_a&quot;
 ##   ,&quot;val_b&quot; = excluded.&quot;val_b&quot;
-## &lt;/SQL&gt;</code></pre>
+## &lt;/SQL&gt;
+## Dropping staging table: stage_upsert_one</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <pre class="sql"><code>SELECT * FROM upsert_one</code></pre>
 <div class="knitsql-table">
@@ -805,52 +806,52 @@ the existing data.</p>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">0.0285698</td>
+<td align="right">-0.5815730</td>
 <td align="left">6</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">-0.4429295</td>
+<td align="right">-1.0971789</td>
 <td align="left">7</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">-0.3009487</td>
+<td align="right">-2.0443829</td>
 <td align="left">8</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">-0.4749153</td>
+<td align="right">-0.3212123</td>
 <td align="left">9</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">-2.9562737</td>
+<td align="right">1.1972931</td>
 <td align="left">10</td>
 </tr>
 <tr class="odd">
 <td align="left">11</td>
-<td align="right">2.9296022</td>
+<td align="right">0.2547445</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">12</td>
-<td align="right">0.9779535</td>
+<td align="right">-1.2014297</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">13</td>
-<td align="right">0.3176492</td>
+<td align="right">-1.6389131</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">14</td>
-<td align="right">-0.0260884</td>
+<td align="right">0.2717449</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">15</td>
-<td align="right">0.8284582</td>
+<td align="right">0.2436192</td>
 <td align="left">NA</td>
 </tr>
 </tbody>
@@ -878,52 +879,52 @@ can pass a <code>data.table</code> as the value and it will succeed.</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">-2.2119337</td>
+<td align="right">-0.1482430</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">0.1458948</td>
+<td align="right">0.8752985</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">0.9753840</td>
+<td align="right">0.0771160</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">-0.6545742</td>
+<td align="right">0.9462161</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">1.6318693</td>
+<td align="right">-0.2547829</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">-0.7689685</td>
+<td align="right">0.9803980</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">-0.4869236</td>
+<td align="right">0.1473482</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">0.7536503</td>
+<td align="right">-0.7451331</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">-0.4275338</td>
+<td align="right">-1.4469304</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">0.3512336</td>
+<td align="right">-1.1967639</td>
 <td align="left">NA</td>
 </tr>
 </tbody>
@@ -955,7 +956,8 @@ can pass a <code>data.table</code> as the value and it will succeed.</p>
 ## FROM &quot;stage_upsert two&quot;
 ## ON CONFLICT (&quot;id&quot;) DO UPDATE SET
 ##   &quot;val a&quot; = excluded.&quot;val a&quot;
-## &lt;/SQL&gt;</code></pre>
+## &lt;/SQL&gt;
+## Dropping staging table: stage_upsert two</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <pre class="sql"><code>SELECT * FROM &quot;upsert two&quot;;</code></pre>
 <div class="knitsql-table">
@@ -971,77 +973,77 @@ can pass a <code>data.table</code> as the value and it will succeed.</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">-2.2119337</td>
+<td align="right">-0.1482430</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">0.1458948</td>
+<td align="right">0.8752985</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">0.9753840</td>
+<td align="right">0.0771160</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">-0.6545742</td>
+<td align="right">0.9462161</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">1.6318693</td>
+<td align="right">-0.2547829</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">-1.0170443</td>
+<td align="right">-0.3244039</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">0.1376950</td>
+<td align="right">1.3630161</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">-2.2278188</td>
+<td align="right">1.3630252</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">-1.4718962</td>
+<td align="right">0.6866105</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">0.7633130</td>
+<td align="right">1.5107805</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">11</td>
-<td align="right">-1.6944400</td>
+<td align="right">-0.1511764</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">12</td>
-<td align="right">-0.0220464</td>
+<td align="right">-0.6759096</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">13</td>
-<td align="right">0.9399413</td>
+<td align="right">-0.6017646</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">14</td>
-<td align="right">-0.6190608</td>
+<td align="right">0.5596318</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">15</td>
-<td align="right">-0.1329490</td>
+<td align="right">0.0293132</td>
 <td align="left">NA</td>
 </tr>
 </tbody>
@@ -1080,13 +1082,13 @@ well.</p>
 <td align="left">1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">0.3939551</td>
+<td align="right">0.9416789</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
 <td align="right">2</td>
 <td align="right">2</td>
-<td align="right">0.6611357</td>
+<td align="right">-0.1253660</td>
 </tr>
 </tbody>
 </table>
@@ -1127,7 +1129,8 @@ well.</p>
 ## FROM &quot;stage_upsert_comp_key&quot;
 ## ON CONFLICT (&quot;id_a&quot;, &quot;id_b&quot;, &quot;id_c&quot;) DO UPDATE SET
 ##   &quot;val_a&quot; = excluded.&quot;val_a&quot;
-## &lt;/SQL&gt;</code></pre>
+## &lt;/SQL&gt;
+## Dropping staging table: stage_upsert_comp_key</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <pre class="sql"><code>SELECT * FROM upsert_comp_key;</code></pre>
 <div class="knitsql-table">
@@ -1146,61 +1149,61 @@ well.</p>
 <td align="left">1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">0.1440612</td>
+<td align="right">-1.3580055</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
 <td align="right">2</td>
 <td align="right">2</td>
-<td align="right">1.2102626</td>
+<td align="right">-1.4822173</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
 <td align="right">3</td>
 <td align="right">3</td>
-<td align="right">-0.2897383</td>
+<td align="right">-0.2893513</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
 <td align="right">4</td>
 <td align="right">4</td>
-<td align="right">0.9849689</td>
+<td align="right">1.4639015</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
 <td align="right">5</td>
 <td align="right">5</td>
-<td align="right">0.8906299</td>
+<td align="right">0.5309120</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
 <td align="right">6</td>
 <td align="right">6</td>
-<td align="right">0.2124444</td>
+<td align="right">0.6100121</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
 <td align="right">7</td>
 <td align="right">7</td>
-<td align="right">-0.7403158</td>
+<td align="right">-1.7792497</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
 <td align="right">8</td>
 <td align="right">8</td>
-<td align="right">-0.8064668</td>
+<td align="right">1.3908499</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
 <td align="right">9</td>
 <td align="right">9</td>
-<td align="right">-0.3544669</td>
+<td align="right">-0.6209768</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
 <td align="right">10</td>
 <td align="right">10</td>
-<td align="right">-0.0728478</td>
+<td align="right">3.5767142</td>
 </tr>
 </tbody>
 </table>
@@ -1238,6 +1241,799 @@ columns that compose the key are provided.</p>
 ##   id_b,
 ##   id_c</code></pre>
 <pre><code>## Error in dbUpsertTable(conn = db_con, name = &quot;upsert_comp_key&quot;, value = data.frame(id_a = 1:10, : Table primary key column(s) `id_b, id_c` was not provided.</code></pre>
+</div>
+<div id="update-table" class="section level1">
+<h1>Update Table</h1>
+<p>Alternatively, there may be instances where you need to simply update
+a SQL table with data from an R table. There are several scenarios where
+you may require this:</p>
+<ul>
+<li>The target table in SQL does not have a primary key</li>
+<li>The target table in SQL uses an identity/sequence or otherwise
+auto-generated key
+<ul>
+<li>In this case, you would first <code>dbAppendTable()</code> new data,
+then <code>dbUpdateTable()</code></li>
+</ul></li>
+<li>You want to update the table and join on arbitrary columns</li>
+</ul>
+<p>Let’s set up some of these scenarios.</p>
+<p>First, we’ll create a table that uses a generated identity:</p>
+<pre class="sql"><code>DROP TABLE IF EXISTS update_one;</code></pre>
+<pre class="sql"><code>CREATE TABLE update_one(
+    id INT GENERATED ALWAYS AS IDENTITY,
+    val_a NUMERIC NOT NULL,
+    val_b NUMERIC NOT NULL
+);</code></pre>
+<p>Second, we’ll create a table with a primary key instead of a
+generated identity:</p>
+<pre class="sql"><code>DROP TABLE IF EXISTS update_two;</code></pre>
+<pre class="sql"><code>CREATE TABLE update_two(
+    id INT NOT NULL
+      CONSTRAINT update_two_pkey PRIMARY KEY,
+    val_a NUMERIC NOT NULL,
+    val_b NUMERIC NOT NULL
+);</code></pre>
+<p>Third, we’ll create a table and be lazy about creating a primary key,
+but not creating a primary key:</p>
+<pre class="sql"><code>DROP TABLE IF EXISTS update_three;</code></pre>
+<pre class="sql"><code>CREATE TABLE update_three(
+    tran_date DATE NOT NULL,
+    customer_id INT NOT NULL,
+    val_a INT NOT NULL
+);</code></pre>
+<div id="updating-a-table-with-identity-column" class="section level2">
+<h2>Updating a table with identity column</h2>
+<p>Let’s seed our table with some sample data first:</p>
+<pre class="r"><code>dbAppendTable(
+  conn = db_con,
+  name = &quot;update_one&quot;,
+  value = data.frame(val_a = rnorm(10), val_b = rnorm(10))
+)</code></pre>
+<pre><code>## [1] 10</code></pre>
+<pre class="sql"><code>SELECT * FROM update_one</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">id</th>
+<th align="right">val_a</th>
+<th align="right">val_b</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right">0.9504152</td>
+<td align="right">-1.7012386</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="right">1.7636236</td>
+<td align="right">-0.9407990</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">1.9312188</td>
+<td align="right">-0.5967378</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="right">-0.2526326</td>
+<td align="right">-0.0032334</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="right">0.8176752</td>
+<td align="right">-0.0607034</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="right">0.4451645</td>
+<td align="right">1.8818805</td>
+</tr>
+<tr class="odd">
+<td align="left">7</td>
+<td align="right">-0.1180641</td>
+<td align="right">-0.9527197</td>
+</tr>
+<tr class="even">
+<td align="left">8</td>
+<td align="right">-1.4301004</td>
+<td align="right">0.4644681</td>
+</tr>
+<tr class="odd">
+<td align="left">9</td>
+<td align="right">1.2136209</td>
+<td align="right">2.6504159</td>
+</tr>
+<tr class="even">
+<td align="left">10</td>
+<td align="right">1.0008592</td>
+<td align="right">0.1195400</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Notice in this scenario we did not attempt to define the
+<code>id</code> column, since this table will always generate the
+<code>id</code> for us.</p>
+<p>Let’s say we have a new value for <code>val_b</code> for the first 5
+rows:</p>
+<pre class="r"><code>updated_data &lt;- data.frame(id = 1:5, val_b = rnorm(5))
+updated_data</code></pre>
+<pre><code>##   id       val_b
+## 1  1  1.69191785
+## 2  2 -0.80150664
+## 3  3  0.13773241
+## 4  4 -0.40074887
+## 5  5  0.08774896</code></pre>
+<pre class="r"><code>dbUpdateTable(
+  conn = db_con,
+  name = &quot;update_one&quot;,
+  value = updated_data,
+  verbose = T
+)</code></pre>
+<pre><code>## Checking for identity column
+##   id
+## Columns to join by: id
+## Columns being updated: val_b
+## Generated SQL Update Command:
+## &lt;SQL&gt;
+## UPDATE &quot;update_one&quot; tt SET
+##   &quot;val_b&quot; = st.&quot;val_b&quot;
+## FROM &quot;stage_update_one&quot; st
+## WHERE tt.&quot;id&quot; = st.&quot;id&quot;
+## ;
+## &lt;/SQL&gt;
+## Dropping staging table: stage_update_one</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="sql"><code>SELECT * FROM update_one ORDER BY id</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">id</th>
+<th align="right">val_a</th>
+<th align="right">val_b</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right">0.9504152</td>
+<td align="right">1.6919178</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="right">1.7636236</td>
+<td align="right">-0.8015066</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">1.9312188</td>
+<td align="right">0.1377324</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="right">-0.2526326</td>
+<td align="right">-0.4007489</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="right">0.8176752</td>
+<td align="right">0.0877490</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="right">0.4451645</td>
+<td align="right">1.8818805</td>
+</tr>
+<tr class="odd">
+<td align="left">7</td>
+<td align="right">-0.1180641</td>
+<td align="right">-0.9527197</td>
+</tr>
+<tr class="even">
+<td align="left">8</td>
+<td align="right">-1.4301004</td>
+<td align="right">0.4644681</td>
+</tr>
+<tr class="odd">
+<td align="left">9</td>
+<td align="right">1.2136209</td>
+<td align="right">2.6504159</td>
+</tr>
+<tr class="even">
+<td align="left">10</td>
+<td align="right">1.0008592</td>
+<td align="right">0.1195400</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>There’s also no limitation on how many column values can be updated
+at once. Let’s run the update again, but this time provide new values
+for both <code>val_a</code> and <code>val_b</code></p>
+<pre class="r"><code>updated_data &lt;- data.frame(id = 6:10, val_a = rnorm(5), val_b = rnorm(5))
+updated_data</code></pre>
+<pre><code>##   id      val_a       val_b
+## 1  6  2.3122921 -1.02666932
+## 2  7 -0.4821710 -0.01175653
+## 3  8  0.2509552  0.52651598
+## 4  9  0.6206733  1.41532378
+## 5 10 -1.0574174 -0.19504735</code></pre>
+<pre class="r"><code>dbUpdateTable(
+  conn = db_con,
+  name = &quot;update_one&quot;,
+  value = updated_data,
+  verbose = T
+)</code></pre>
+<pre><code>## Checking for identity column
+##   id
+## Columns to join by: id
+## Columns being updated: val_a, val_b
+## Generated SQL Update Command:
+## &lt;SQL&gt;
+## UPDATE &quot;update_one&quot; tt SET
+##   &quot;val_a&quot; = st.&quot;val_a&quot;
+##   ,&quot;val_b&quot; = st.&quot;val_b&quot;
+## FROM &quot;stage_update_one&quot; st
+## WHERE tt.&quot;id&quot; = st.&quot;id&quot;
+## ;
+## &lt;/SQL&gt;
+## Dropping staging table: stage_update_one</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="sql"><code>SELECT * FROM update_one ORDER BY id</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">id</th>
+<th align="right">val_a</th>
+<th align="right">val_b</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right">0.9504152</td>
+<td align="right">1.6919178</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="right">1.7636236</td>
+<td align="right">-0.8015066</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">1.9312188</td>
+<td align="right">0.1377324</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="right">-0.2526326</td>
+<td align="right">-0.4007489</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="right">0.8176752</td>
+<td align="right">0.0877490</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="right">2.3122921</td>
+<td align="right">-1.0266693</td>
+</tr>
+<tr class="odd">
+<td align="left">7</td>
+<td align="right">-0.4821710</td>
+<td align="right">-0.0117565</td>
+</tr>
+<tr class="even">
+<td align="left">8</td>
+<td align="right">0.2509552</td>
+<td align="right">0.5265160</td>
+</tr>
+<tr class="odd">
+<td align="left">9</td>
+<td align="right">0.6206733</td>
+<td align="right">1.4153238</td>
+</tr>
+<tr class="even">
+<td align="left">10</td>
+<td align="right">-1.0574174</td>
+<td align="right">-0.1950474</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="updating-a-table-with-a-primary-key" class="section level2">
+<h2>Updating a table with a primary key</h2>
+<p>This will work very similarly to updating a table with an identity.
+We’ll simply replicate the second scenario we performed for the table
+with an identity.</p>
+<pre class="r"><code>dbAppendTable(
+  conn = db_con,
+  name = &quot;update_two&quot;,
+  value = data.frame(id = 1:10, val_a = rnorm(10), val_b = rnorm(10))
+)</code></pre>
+<pre><code>## [1] 10</code></pre>
+<pre class="sql"><code>SELECT * FROM update_two ORDER BY id</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">id</th>
+<th align="right">val_a</th>
+<th align="right">val_b</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right">1.1456735</td>
+<td align="right">-0.0024160</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="right">-0.6723907</td>
+<td align="right">0.8984258</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">-1.2001447</td>
+<td align="right">-0.3319432</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="right">-0.0050070</td>
+<td align="right">0.3837795</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="right">-0.2150538</td>
+<td align="right">1.4845261</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="right">1.3197342</td>
+<td align="right">-0.0469697</td>
+</tr>
+<tr class="odd">
+<td align="left">7</td>
+<td align="right">2.2410734</td>
+<td align="right">-0.6679544</td>
+</tr>
+<tr class="even">
+<td align="left">8</td>
+<td align="right">0.6586062</td>
+<td align="right">-1.4123200</td>
+</tr>
+<tr class="odd">
+<td align="left">9</td>
+<td align="right">0.3270823</td>
+<td align="right">-0.2394314</td>
+</tr>
+<tr class="even">
+<td align="left">10</td>
+<td align="right">-0.2701096</td>
+<td align="right">0.2208351</td>
+</tr>
+</tbody>
+</table>
+</div>
+<pre class="r"><code>updated_data &lt;- data.frame(id = 6:10, val_a = rnorm(5), val_b = rnorm(5))
+updated_data</code></pre>
+<pre><code>##   id      val_a       val_b
+## 1  6 -0.1057373 -0.97818558
+## 2  7 -0.4976070  2.26311028
+## 3  8  0.6346876 -0.01531547
+## 4  9 -0.6457706 -1.94736991
+## 5 10 -0.7581972 -1.41392781</code></pre>
+<pre class="r"><code>dbUpdateTable(
+  conn = db_con,
+  name = &quot;update_two&quot;,
+  value = updated_data,
+  verbose = T
+)</code></pre>
+<pre><code>## Checking for identity column
+## No identity column found
+## Querying table primary key columns
+##   id
+## Columns to join by: id
+## Columns being updated: val_a, val_b
+## Generated SQL Update Command:
+## &lt;SQL&gt;
+## UPDATE &quot;update_two&quot; tt SET
+##   &quot;val_a&quot; = st.&quot;val_a&quot;
+##   ,&quot;val_b&quot; = st.&quot;val_b&quot;
+## FROM &quot;stage_update_two&quot; st
+## WHERE tt.&quot;id&quot; = st.&quot;id&quot;
+## ;
+## &lt;/SQL&gt;
+## Dropping staging table: stage_update_two</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="sql"><code>SELECT * FROM update_two ORDER BY id</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">id</th>
+<th align="right">val_a</th>
+<th align="right">val_b</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right">1.1456735</td>
+<td align="right">-0.0024160</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="right">-0.6723907</td>
+<td align="right">0.8984258</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">-1.2001447</td>
+<td align="right">-0.3319432</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="right">-0.0050070</td>
+<td align="right">0.3837795</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="right">-0.2150538</td>
+<td align="right">1.4845261</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="right">-0.1057373</td>
+<td align="right">-0.9781856</td>
+</tr>
+<tr class="odd">
+<td align="left">7</td>
+<td align="right">-0.4976070</td>
+<td align="right">2.2631103</td>
+</tr>
+<tr class="even">
+<td align="left">8</td>
+<td align="right">0.6346876</td>
+<td align="right">-0.0153155</td>
+</tr>
+<tr class="odd">
+<td align="left">9</td>
+<td align="right">-0.6457706</td>
+<td align="right">-1.9473699</td>
+</tr>
+<tr class="even">
+<td align="left">10</td>
+<td align="right">-0.7581972</td>
+<td align="right">-1.4139278</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="updating-a-table-without-an-identity-or-primary-key" class="section level2">
+<h2>Updating a table without an identity or primary key</h2>
+<p>It’s not completely atypical to have a table without any primary keys
+or identities, but definitely best practice. However, even if you do
+have a table with identity/pkey, you may still want to update a table
+using an arbitrary set of join conditions. You may manually specify the
+columns to join on when performing an update.</p>
+<p>Let’s stage the scenario for this:</p>
+<pre class="r"><code>customer_data &lt;- data.frame(
+  tran_date = seq.Date(from = (Sys.Date() - 4), to = Sys.Date(), by = &quot;day&quot;) |&gt;
+    as.character() |&gt;
+    lapply(rep, times = 2) |&gt;
+    unlist() |&gt;
+    as.Date(),
+  customer_id = rep(1:2,5),
+  val_a = sample(1:100, 10, TRUE)
+)
+
+customer_data</code></pre>
+<pre><code>##     tran_date customer_id val_a
+## 1  2022-06-17           1    20
+## 2  2022-06-17           2     9
+## 3  2022-06-18           1    55
+## 4  2022-06-18           2    59
+## 5  2022-06-19           1    88
+## 6  2022-06-19           2    73
+## 7  2022-06-20           1    48
+## 8  2022-06-20           2    81
+## 9  2022-06-21           1     9
+## 10 2022-06-21           2    72</code></pre>
+<pre class="r"><code>dbAppendTable(
+  conn = db_con,
+  name = &quot;update_three&quot;,
+  value = customer_data
+)</code></pre>
+<pre><code>## [1] 10</code></pre>
+<pre class="sql"><code>SELECT * FROM update_three</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">tran_date</th>
+<th align="right">customer_id</th>
+<th align="right">val_a</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2022-06-17</td>
+<td align="right">1</td>
+<td align="right">20</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-17</td>
+<td align="right">2</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-18</td>
+<td align="right">1</td>
+<td align="right">55</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-18</td>
+<td align="right">2</td>
+<td align="right">59</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-19</td>
+<td align="right">1</td>
+<td align="right">88</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-19</td>
+<td align="right">2</td>
+<td align="right">73</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-20</td>
+<td align="right">1</td>
+<td align="right">48</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-20</td>
+<td align="right">2</td>
+<td align="right">81</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-21</td>
+<td align="right">1</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-21</td>
+<td align="right">2</td>
+<td align="right">72</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Now let’s update some specific values by customer
+<strong>and</strong> date.</p>
+<pre class="r"><code>updated_data &lt;- data.frame(
+  tran_date = seq.Date(from = (Sys.Date() - 4), to = Sys.Date(), by = &quot;day&quot;),
+  customer_id = rep(1,5),
+  val_a = sample(100:150, 5, TRUE)
+)
+
+updated_data</code></pre>
+<pre><code>##    tran_date customer_id val_a
+## 1 2022-06-17           1   122
+## 2 2022-06-18           1   144
+## 3 2022-06-19           1   102
+## 4 2022-06-20           1   144
+## 5 2022-06-21           1   105</code></pre>
+<p>First, if we try to simple update the table without specifying
+<code>join_on</code>, we’ll encounter an error:</p>
+<pre class="r"><code>dbUpdateTable(
+  conn = db_con,
+  name = &quot;update_three&quot;,
+  value = updated_data,
+  verbose = T
+)</code></pre>
+<pre><code>## Checking for identity column
+## No identity column found
+## Querying table primary key columns</code></pre>
+<pre><code>## Error in .dbTablePkey(conn, name): Target table `update_three` has no primary key. Cannot do update.</code></pre>
+<p>Since there are no primary keys or identity columns to guess on, you
+must manually specify how to join:</p>
+<pre class="r"><code>dbUpdateTable(
+  conn = db_con,
+  name = &quot;update_three&quot;,
+  value = updated_data,
+  join_on = c(&quot;tran_date&quot;, &quot;customer_id&quot;),
+  verbose = T
+)</code></pre>
+<pre><code>## Columns to join by: tran_date, customer_id
+## Columns being updated: val_a
+## Generated SQL Update Command:
+## &lt;SQL&gt;
+## UPDATE &quot;update_three&quot; tt SET
+##   &quot;val_a&quot; = st.&quot;val_a&quot;
+## FROM &quot;stage_update_three&quot; st
+## WHERE tt.&quot;tran_date&quot; = st.&quot;tran_date&quot;
+## AND tt.&quot;customer_id&quot; = st.&quot;customer_id&quot;;
+## &lt;/SQL&gt;
+## Dropping staging table: stage_update_three</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="sql"><code>SELECT * FROM update_three ORDER BY tran_date, customer_id</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">tran_date</th>
+<th align="right">customer_id</th>
+<th align="right">val_a</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2022-06-17</td>
+<td align="right">1</td>
+<td align="right">122</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-17</td>
+<td align="right">2</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-18</td>
+<td align="right">1</td>
+<td align="right">144</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-18</td>
+<td align="right">2</td>
+<td align="right">59</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-19</td>
+<td align="right">1</td>
+<td align="right">102</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-19</td>
+<td align="right">2</td>
+<td align="right">73</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-20</td>
+<td align="right">1</td>
+<td align="right">144</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-20</td>
+<td align="right">2</td>
+<td align="right">81</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-21</td>
+<td align="right">1</td>
+<td align="right">105</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-21</td>
+<td align="right">2</td>
+<td align="right">72</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Alternatively, you can use this to update a set of records with the
+same value:</p>
+<pre class="r"><code>updated_data &lt;- data.frame(
+  tran_date = Sys.Date(),
+  val_a = 0
+)
+
+updated_data</code></pre>
+<pre><code>##    tran_date val_a
+## 1 2022-06-21     0</code></pre>
+<pre class="r"><code>dbUpdateTable(
+  conn = db_con,
+  name = &quot;update_three&quot;,
+  value = updated_data,
+  join_on = &quot;tran_date&quot;,
+  verbose = T
+)</code></pre>
+<pre><code>## Columns to join by: tran_date
+## Columns being updated: val_a
+## Generated SQL Update Command:
+## &lt;SQL&gt;
+## UPDATE &quot;update_three&quot; tt SET
+##   &quot;val_a&quot; = st.&quot;val_a&quot;
+## FROM &quot;stage_update_three&quot; st
+## WHERE tt.&quot;tran_date&quot; = st.&quot;tran_date&quot;
+## ;
+## &lt;/SQL&gt;
+## Dropping staging table: stage_update_three</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="sql"><code>SELECT * FROM update_three ORDER BY tran_date, customer_id</code></pre>
+<div class="knitsql-table">
+<table>
+<caption>Displaying records 1 - 10</caption>
+<thead>
+<tr class="header">
+<th align="left">tran_date</th>
+<th align="right">customer_id</th>
+<th align="right">val_a</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2022-06-17</td>
+<td align="right">1</td>
+<td align="right">122</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-17</td>
+<td align="right">2</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-18</td>
+<td align="right">1</td>
+<td align="right">144</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-18</td>
+<td align="right">2</td>
+<td align="right">59</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-19</td>
+<td align="right">1</td>
+<td align="right">102</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-19</td>
+<td align="right">2</td>
+<td align="right">73</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-20</td>
+<td align="right">1</td>
+<td align="right">144</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-20</td>
+<td align="right">2</td>
+<td align="right">81</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-21</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-21</td>
+<td align="right">2</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 
 
