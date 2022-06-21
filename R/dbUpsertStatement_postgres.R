@@ -1,6 +1,7 @@
 #' Generate Upsert SQL Statement for Postgres
 #'
-#' Should not be called directly. Use `.dbUpsertStatement()` instead.
+#' This function should never be called directly.
+#' It is an internal function to the package.
 #'
 #' @param conn A DBI Connection Object
 #' @param target_table A table name in the DB to upsert to

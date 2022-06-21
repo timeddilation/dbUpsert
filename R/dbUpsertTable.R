@@ -1,7 +1,11 @@
-#' Upsert data.frame to SQL DB
+#' Upsert (insert and update) data.frame to SQL table
 #'
-#' Only works with primary keys, not identities/sequences
-#' Will never update primary keys
+#' Only works with primary keys, not identities/sequences.
+#' The target SQL table must have a primary key, tables without primary keys cannot perform conflict detection.
+#' Primary keys cannot be updated with this function, even if the SQL table allows keys to be changed.
+#' If you are trying to upsert a table that does not have primary key, instead consider first using `dbAppendTable()` to write new data, then `dbUpdateTable()` to update existing values.
+#' Use the `verbose = TRUE` argument to show details of the function's progress in the console.
+#' This function returns `TRUE` if it succeeds.
 #'
 #' @param conn A DBI Connection Object
 #' @param name A table name in the DB to upsert to
@@ -14,7 +18,7 @@ dbUpsertTable <- function(
   conn,
   name,
   value,
-  stage_table = NULL,
+  stage_table = paste0("stage_", name),
   overwrite_stage_table = TRUE,
   verbose = FALSE
 ) {
@@ -179,18 +183,12 @@ dbUpsertTable <- function(
   }
 
   ##############################################################################
-  # set staging table name
+  # Write data to staging table
   ##############################################################################
-  if (is.null(stage_table) == TRUE) {
-    stage_table <- paste0("stage_", name)
-  }
   if (verbose == TRUE) {
     cat(paste0("Writing data to staging table: ", stage_table, "\n"))
   }
 
-  ##############################################################################
-  # Write data to staging table
-  ##############################################################################
   dbWriteTable(
     conn = conn,
     name = stage_table,
@@ -227,6 +225,9 @@ dbUpsertTable <- function(
   ##############################################################################
   # Drop staging table
   ##############################################################################
+  if (verbose == TRUE) {
+    cat(paste0("Dropping staging table: ", stage_table, "\n"))
+  }
   dbRemoveTable(conn, stage_table)
 
   return(TRUE)

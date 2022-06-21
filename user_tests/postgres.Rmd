@@ -334,7 +334,7 @@ DROP TABLE IF EXISTS update_three;
 CREATE TABLE update_three(
     tran_date DATE NOT NULL,
     customer_id INT NOT NULL,
-    val_b NUMERIC NOT NULL
+    val_a INT NOT NULL
 );
 ```
 
@@ -433,3 +433,98 @@ SELECT * FROM update_two ORDER BY id
 ```
 
 ## Updating a table without an identity or primary key ##
+
+It's not completely atypical to have a table without any primary keys or identities, but definitely best practice. 
+However, even if you do have a table with identity/pkey, you may still want to update a table using an arbitrary set of join conditions.
+You may manually specify the columns to join on when performing an update.
+
+Let's stage the scenario for this:
+
+```{r}
+customer_data <- data.frame(
+  tran_date = seq.Date(from = (Sys.Date() - 4), to = Sys.Date(), by = "day") |>
+    as.character() |>
+    lapply(rep, times = 2) |>
+    unlist() |>
+    as.Date(),
+  customer_id = rep(1:2,5),
+  val_a = sample(1:100, 10, TRUE)
+)
+
+customer_data
+```
+
+```{r}
+dbAppendTable(
+  conn = db_con,
+  name = "update_three",
+  value = customer_data
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_three
+```
+
+Now let's update some specific values by customer **and** date.
+
+```{r}
+updated_data <- data.frame(
+  tran_date = seq.Date(from = (Sys.Date() - 4), to = Sys.Date(), by = "day"),
+  customer_id = rep(1,5),
+  val_a = sample(100:150, 5, TRUE)
+)
+
+updated_data
+```
+First, if we try to simple update the table without specifying `join_on`, we'll encounter an error:
+
+```{r, error = TRUE}
+dbUpdateTable(
+  conn = db_con,
+  name = "update_three",
+  value = updated_data,
+  verbose = T
+)
+```
+
+Since there are no primary keys or identity columns to guess on, you must manually specify how to join:
+
+```{r}
+dbUpdateTable(
+  conn = db_con,
+  name = "update_three",
+  value = updated_data,
+  join_on = c("tran_date", "customer_id"),
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_three ORDER BY tran_date, customer_id
+```
+
+Alternatively, you can use this to update a set of records with the same value:
+
+```{r}
+updated_data <- data.frame(
+  tran_date = Sys.Date(),
+  val_a = 0
+)
+
+updated_data
+```
+
+```{r}
+dbUpdateTable(
+  conn = db_con,
+  name = "update_three",
+  value = updated_data,
+  join_on = "tran_date",
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_three ORDER BY tran_date, customer_id
+```

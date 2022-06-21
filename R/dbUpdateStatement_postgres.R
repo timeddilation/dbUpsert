@@ -1,3 +1,14 @@
+#' Generate update SQL Statement for postgresql
+#'
+#' This function should never be called directly.
+#' It is an internal function to the package.
+#'
+#' @param conn A DBI Connection Object
+#' @param target_table A table name in the DB to upsert to
+#' @param staging_table A table name in the DB containing data to upsert
+#' @param join_cols A character vector of column names used as the primary key
+#' @param update_cols A character vector of column names to update, should exclude the PKs
+
 .dbUpdateStatement_postgres <- function(
   conn,
   target_table,
