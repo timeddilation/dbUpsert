@@ -16,25 +16,23 @@ This package is ideal for data pipeline tasks, or ETL processes in R.
 Currently supported RDBMS's include:
 
 -   postgresql
+-   Microsoft SQL Server (with limitations)
 
 Planned support for RDMBS's include:
 
 -   MySQL
--   Microsoft SQL Server
+-   Any ANSI SQL backend
 
-Other RDBMS's are not considered for support at this time, unless others intend to contribute or there is significant interest and time to implement it.
+The end goal is to make this package completely ANSI SQL compliant. However, in order to implement most of the error handling, this package queries data from the SQL information schema. Each RDMBS handles tracking primary keys differently, and this makes the fully ANSI SQL version difficult to accomplish. Eventually, compromises will be made, with richer feature sets for the supported RDBMS's.
 
 ## Details
-
-Every RDBMS has its own implementation that takes advantage of that RDMBS's specific syntax.
-For example, postgres has the command `INSERT INTO ... VALUES ... ON CONFLICT (column(s)) DO UPDATE...`. The syntax of `ON CONFLICT ... DO UPDATE` is specific to postgres only.
-Therefore, it is not ANSI 92 compliant, which is also why only some RDMBS's are supported.
-This is done to take advantage of features provided by the RDMBS for this specific task, and to have an atomic SQL statement/transaction that will either succeed or fail entirely.
 
 The functions contained in this package handle the interactions with the database to get information about the target SQL table.
 This includes getting the columns from a table, their data types, null-ability, and which column(s) are used for the primary key.
 
 In order to get the full functionality of this package, one must connect to the SQL database with a user account that can create tables, read and write to tables, and query the DB's information schema.
+
+In all cases, regardless of the RDBMS being used, the generated SQL statements that actually perform the inserts and updates are ANSI SQL standard.
 
 ### Upsert Table
 
@@ -43,11 +41,13 @@ There are some stipulations for this to work, however.
 
 -   The target SQL table must have a primary key
 -   The target SQL table's primary key cannot be an identity/sequence
--   You must provide the primary key values to insert or update by
+-   You must provide the primary key values to insert or update by in your table value
 
 In addition, inserts and update are handled by column names in your R dataframe.
-The names must be an exact match.
+The names in your dataframe must be an exact match to the column names in the SQL table.
 While this works in the majority of cases, ANSI SQL permits spaces in column names, whereas R's dataframe does not. Although you should not have spaces in your SQL table column names, if you do, you can use R's `data.table` library instead of base dataframes to circumvent this.
+
+Currently, only postgresql is fully supported, and [MS] SQL Server is partially supported. This is due to the error checking and automating the function parameters the package does prior to sending any data to the SQL database.
 
 The functions will will display an error if any non-nullable values are missing or the column(s) for the primary key is missing.
 The function will warn you if you provide columns that do not exist in the target SQL table, but will perform the upsert anyways.
