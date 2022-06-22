@@ -2,9 +2,15 @@
 % Please edit documentation in R/dbUpdateStatement.R
 \name{.dbUpdateStatement}
 \alias{.dbUpdateStatement}
-\title{Generate update SQL Statement}
+\title{Generates update SQL Statement}
 \usage{
-.dbUpdateStatement(conn, target_table, staging_table, join_cols, update_cols)
+.dbUpdateStatement(
+  conn,
+  target_table,
+  staging_table,
+  join_cols = NA,
+  update_cols = NA
+)
 }
 \arguments{
 \item{conn}{A DBI Connection Object}
@@ -18,5 +24,6 @@
 \item{update_cols}{A character vector of column names to update, should exclude the PKs}
 }
 \description{
-Generate update SQL Statement
+This function should never be called directly.
+It is an internal function to the package.
 }

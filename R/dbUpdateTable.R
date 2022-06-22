@@ -169,6 +169,10 @@ dbUpdateTable <- function(
   ##############################################################################
   # Stage data in database
   ##############################################################################
+  if (verbose == TRUE) {
+    cat("Writing R data to staging table in SQL DB\n")
+  }
+
   dbWriteTable(
     conn = conn,
     name = stage_table,
