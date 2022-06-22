@@ -8,14 +8,14 @@
 
   if (rdbms == "PqConnection") {
     pkey <- .dbTablePkey_postgres(conn, name)
-  } else if (rdbms == "MySQLConnection") {
-    stop("Implementation for MySQLConnection is a stub.")
-    # pkey <- .dbTablePkey_mysql(conn, name)
-  } else if (rdbms == "Microsoft SQL Server") {
-    stop("Implementation for Microsoft SQL Server is a stub.")
-    # pkey <- .dbTablePkey_mssql(conn, name)
+  # } else if (rdbms == "MySQLConnection") {
+  #   stop("Implementation for MySQLConnection is a stub.")
+  #   # pkey <- .dbTablePkey_mysql(conn, name)
+  # } else if (rdbms == "Microsoft SQL Server") {
+  #   stop("Implementation for Microsoft SQL Server is a stub.")
+  #   # pkey <- .dbTablePkey_mssql(conn, name)
   } else {
-    stop("No implementation planned for DB backend.")
+    stop("Cannot query for primary key in this RDBMS. You will need to manually specify `value_pkey` or `join_on`")
   }
 
   if (length(pkey) < 1) {

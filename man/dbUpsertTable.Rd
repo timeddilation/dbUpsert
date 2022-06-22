@@ -8,6 +8,7 @@ dbUpsertTable(
   conn,
   name,
   value,
+  value_pkey = NA,
   stage_table = paste0("stage_", name),
   overwrite_stage_table = TRUE,
   verbose = FALSE
@@ -19,6 +20,8 @@ dbUpsertTable(
 \item{name}{A table name in the DB to upsert to}
 
 \item{value}{A dataframe object containing data to upsert}
+
+\item{value_pkey}{A character vector of column names that form the SQL table primary key. For supported SQL backends, this is queried for you. Otherwise, you will have to manually specify.}
 
 \item{overwrite_stage_table}{A boolean indicating if you want to drop the staging table (if it already exists). If it does already exist, and this value is `false`, then the upsert will fail.}
 

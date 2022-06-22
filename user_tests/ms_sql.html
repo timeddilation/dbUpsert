@@ -13,7 +13,7 @@
 
 <meta name="date" content="2022-06-23" />
 
-<title>Postgresql</title>
+<title>MS SQL</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -363,7 +363,7 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Postgresql</h1>
+<h1 class="title toc-ignore">MS SQL</h1>
 <h4 class="author">Tyler Neumann</h4>
 <h4 class="date">2022-06-23</h4>
 
@@ -376,29 +376,31 @@ pre code {
   dbDisconnect(db_con)
   rm(db_con)
 }</code></pre>
-<div id="start-postgres-docker-container" class="section level2">
-<h2>Start Postgres Docker Container</h2>
+<div id="start-ms-sql-docker-container" class="section level2">
+<h2>Start MS SQL Docker Container</h2>
 <p>First, stop and remove container if it is currently running.</p>
-<pre class="bash"><code>docker ps -q --filter &quot;name=eg_postgres&quot; | grep -q . &amp;&amp; docker stop eg_postgres &amp;&amp; docker rm -fv eg_postgres</code></pre>
-<pre><code>## eg_postgres
-## eg_postgres</code></pre>
+<pre class="bash"><code>docker ps -q --filter &quot;name=eg_mssql&quot; | grep -q . &amp;&amp; docker stop eg_mssql &amp;&amp; docker rm -fv eg_mssql</code></pre>
+<pre><code>## eg_mssql
+## eg_mssql</code></pre>
 <p>Then start the container.</p>
-<pre class="bash"><code>docker run --name eg_postgres -p 5432:5432 -e POSTGRES_PASSWORD=My1secretpassword -d postgres</code></pre>
-<pre><code>## 02af72b0df607e067746d05dfbbbbd207f12c041eb6126d801ab2048e4a70002</code></pre>
+<pre class="bash"><code>docker run --name eg_mssql -p 1433:1433 -e ACCEPT_EULA=Y -e SA_PASSWORD=My1secretpassword -d mcr.microsoft.com/mssql/server:2019-latest</code></pre>
+<pre><code>## 422f5b2281c18bf834d6472ee5e23c92beea8dbbf53e20c6bd43979d7b151508</code></pre>
 </div>
-<div id="open-connection-to-postgres" class="section level2">
-<h2>Open Connection to Postgres</h2>
-<p>The postgres Docker Container is very quick to start up, but still
-requires ~1 second to wait before trying to open a connection.</p>
-<pre class="r"><code>Sys.sleep(1)
+<div id="open-connection-to-ms-sql" class="section level2">
+<h2>Open Connection to MS SQL</h2>
+<p>The MS SQL Docker container take a few seconds to complete the start
+up process before being able to connect. We must wait ~10 seconds before
+trying to connect.</p>
+<pre class="r"><code>Sys.sleep(10)
 
 db_con &lt;- dbConnect(
-  RPostgres::Postgres(),
-  host = &quot;localhost&quot;,
-  user = &quot;postgres&quot;,
-  password = &quot;My1secretpassword&quot;,
-  port = 5432,
-  dbname = &quot;postgres&quot;
+  odbc::odbc(),
+  driver = &quot;ODBC Driver 17 for SQL Server&quot;,
+  server = &quot;localhost&quot;,
+  uid = &quot;sa&quot;,
+  pwd = &quot;My1secretpassword&quot;,
+  port = 1433,
+  database = &quot;master&quot;
 )
 
 db_info &lt;- list(
@@ -408,15 +410,13 @@ db_info &lt;- list(
 
 db_info</code></pre>
 <pre><code>## $rdbms
-## [1] &quot;PqConnection&quot;
+## [1] &quot;Microsoft SQL Server&quot;
 ## 
 ## $version
-## [1] 140002</code></pre>
+## [1] &quot;15.00.4198&quot;</code></pre>
 </div>
 <div id="validate-db-interface" class="section level2">
 <h2>Validate DB Interface</h2>
-<p>Before we begin using the package, we should veryify that our DB
-connection is working, and we can read and write data to it.</p>
 <pre class="r"><code>df1 &lt;- data.frame(
   var_one = 1:10,
   var_two = rnorm(10)
@@ -430,16 +430,16 @@ dbWriteTable(
 )</code></pre>
 <pre class="r"><code>dbReadTable(db_con, &quot;test_one&quot;)</code></pre>
 <pre><code>##    var_one    var_two
-## 1        1 -1.1651514
-## 2        2 -0.9870198
-## 3        3 -0.1826281
-## 4        4  1.0880360
-## 5        5  1.0666200
-## 6        6 -0.8255925
-## 7        7  0.3871425
-## 8        8 -2.2220392
-## 9        9  1.6380720
-## 10      10 -1.0520518</code></pre>
+## 1        1 -2.6036266
+## 2        2  0.1245291
+## 3        3 -0.5529911
+## 4        4 -0.3462384
+## 5        5  0.3395586
+## 6        6 -0.6250549
+## 7        7  0.5412448
+## 8        8  1.3503741
+## 9        9  1.2122986
+## 10      10 -0.3191494</code></pre>
 </div>
 <div id="set-up-test-table" class="section level1">
 <h1>Set up Test Table</h1>
@@ -471,12 +471,11 @@ dbWriteTable(
 <p>Populate tables with some simple data.</p>
 <pre class="r"><code>test_one &lt;- df1
 names(test_one) &lt;- c(&quot;id&quot;, &quot;val_a&quot;)
-dbAppendTable(db_con, &quot;upsert_one&quot;, test_one)</code></pre>
-<pre><code>## [1] 10</code></pre>
-<pre class="r"><code>test_two &lt;- df1
+dbAppendTable(db_con, &quot;upsert_one&quot;, test_one)
+
+test_two &lt;- df1
 names(test_two) &lt;- c(&quot;id&quot;, &quot;val a&quot;)
 dbAppendTable(db_con, &quot;upsert two&quot;, test_two)</code></pre>
-<pre><code>## [1] 10</code></pre>
 </div>
 <div id="validate-internals" class="section level1">
 <h1>Validate Internals</h1>
@@ -496,52 +495,52 @@ database.</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">-1.1651514</td>
+<td align="right">-3</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">-0.9870198</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">-0.1826281</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">1.0880360</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">1.0666200</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">-0.8255925</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">0.3871425</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">-2.2220392</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">1.6380720</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">-1.0520518</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 </tbody>
@@ -556,13 +555,15 @@ see how the package is interacting with the SQL database.</p>
   conn = db_con,
   name = &quot;upsert_one&quot;,
   value = data.frame(id = 1:10, val_a = rnorm(10)),
+  value_pkey = &quot;id&quot;,
   verbose = T
 )</code></pre>
-<pre><code>## Querying table primary key columns
-##   id
-## Querying table column info
-##   val_a (numeric) NOT NULL
-##   val_b (character varying) NULL
+<pre><code>##   id
+## Querying table column info</code></pre>
+<pre><code>## Warning in dbColumnInfoExtended(conn, name): Auto-detection for identities and
+## auto-generated sequences not yet implemented for SQL Server.</code></pre>
+<pre><code>##   val_a (numeric) NOT NULL
+##   val_b (varchar) NOT NULL
 ## Columns being inserted: id, val_a
 ## Columns being updated: val_a
 ## Writing data to staging table: stage_upsert_one
@@ -602,52 +603,52 @@ see how the package is interacting with the SQL database.</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">1.0519378</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">0.8299498</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">0.2015821</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">-0.2519778</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">-0.6378322</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">-0.6398554</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">-1.2347811</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">-0.3507807</td>
+<td align="right">2</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">-0.5162725</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">-1.9331647</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 </tbody>
@@ -666,13 +667,15 @@ those columns from the dataframe value before staging the data.</p>
     val_c = 1:10,
     val_d = 1:10
   ),
+  value_pkey = &quot;id&quot;,
   verbose = T
 )</code></pre>
-<pre><code>## Querying table primary key columns
-##   id
-## Querying table column info
-##   val_a (numeric) NOT NULL
-##   val_b (character varying) NULL</code></pre>
+<pre><code>##   id
+## Querying table column info</code></pre>
+<pre><code>## Warning in dbColumnInfoExtended(conn, name): Auto-detection for identities and
+## auto-generated sequences not yet implemented for SQL Server.</code></pre>
+<pre><code>##   val_a (numeric) NOT NULL
+##   val_b (varchar) NOT NULL</code></pre>
 <pre><code>## Warning in dbUpsertTable(conn = db_con, name = &quot;upsert_one&quot;, value =
 ## data.frame(id = 1:10, : The following provided columns do not exist in the DB
 ## table: val_c, val_d. These columns will be removed before upserting to DB.</code></pre>
@@ -778,8 +781,11 @@ the existing data.</p>
 <pre class="r"><code>dbUpsertTable(
   conn = db_con,
   name = &quot;upsert_one&quot;,
-  value = data.frame(id = 6:15, val_a = rnorm(10))
+  value = data.frame(id = 6:15, val_a = rnorm(10)),
+  value_pkey = &quot;id&quot;
 )</code></pre>
+<pre><code>## Warning in dbColumnInfoExtended(conn, name): Auto-detection for identities and
+## auto-generated sequences not yet implemented for SQL Server.</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <pre class="sql"><code>SELECT * FROM upsert_one</code></pre>
 <div class="knitsql-table">
@@ -795,77 +801,77 @@ the existing data.</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">1.0000000</td>
+<td align="right">1</td>
 <td align="left">1</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">2.0000000</td>
+<td align="right">2</td>
 <td align="left">2</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">3.0000000</td>
+<td align="right">3</td>
 <td align="left">3</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">4.0000000</td>
+<td align="right">4</td>
 <td align="left">4</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">5.0000000</td>
+<td align="right">5</td>
 <td align="left">5</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">0.9513493</td>
+<td align="right">0</td>
 <td align="left">6</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">-0.4086497</td>
+<td align="right">0</td>
 <td align="left">7</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">0.0391237</td>
+<td align="right">1</td>
 <td align="left">8</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">0.9379725</td>
+<td align="right">1</td>
 <td align="left">9</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">0.4292840</td>
+<td align="right">-1</td>
 <td align="left">10</td>
 </tr>
 <tr class="odd">
 <td align="left">11</td>
-<td align="right">-2.6272850</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">12</td>
-<td align="right">1.1672357</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">13</td>
-<td align="right">0.6293889</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">14</td>
-<td align="right">1.3171130</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">15</td>
-<td align="right">1.1149154</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 </tbody>
@@ -893,52 +899,52 @@ can pass a <code>data.table</code> as the value and it will succeed.</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">-1.1651514</td>
+<td align="right">-3</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">-0.9870198</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">-0.1826281</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">1.0880360</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">1.0666200</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">-0.8255925</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">0.3871425</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">-2.2220392</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">1.6380720</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">-1.0520518</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 </tbody>
@@ -948,13 +954,15 @@ can pass a <code>data.table</code> as the value and it will succeed.</p>
   conn = db_con,
   name = &quot;upsert two&quot;,
   value = data.table::data.table(id = 6:15, `val a` = rnorm(10)),
+  value_pkey = &quot;id&quot;,
   verbose = T
 )</code></pre>
-<pre><code>## Querying table primary key columns
-##   id
-## Querying table column info
-##   val a (numeric) NOT NULL
-##   val b (character varying) NULL
+<pre><code>##   id
+## Querying table column info</code></pre>
+<pre><code>## Warning in dbColumnInfoExtended(conn, name): Auto-detection for identities and
+## auto-generated sequences not yet implemented for SQL Server.</code></pre>
+<pre><code>##   val a (numeric) NOT NULL
+##   val b (varchar) NOT NULL
 ## Columns being inserted: id, val a
 ## Columns being updated: val a
 ## Writing data to staging table: stage_upsert two
@@ -994,77 +1002,77 @@ can pass a <code>data.table</code> as the value and it will succeed.</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">-1.1651514</td>
+<td align="right">-3</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">-0.9870198</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">-0.1826281</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">1.0880360</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">1.0666200</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">-2.2730991</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">0.5284911</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">-1.6058542</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">0.4908933</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">-0.5060398</td>
+<td align="right">-1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">11</td>
-<td align="right">0.3691267</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">12</td>
-<td align="right">-0.9698727</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">13</td>
-<td align="right">-0.5461902</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 <tr class="even">
 <td align="left">14</td>
-<td align="right">0.0216679</td>
+<td align="right">1</td>
 <td align="left">NA</td>
 </tr>
 <tr class="odd">
 <td align="left">15</td>
-<td align="right">-1.0557895</td>
+<td align="right">0</td>
 <td align="left">NA</td>
 </tr>
 </tbody>
@@ -1085,7 +1093,6 @@ well.</p>
     val_a = rnorm(2)
   )
 )</code></pre>
-<pre><code>## [1] 2</code></pre>
 <pre class="sql"><code>SELECT * FROM upsert_comp_key;</code></pre>
 <div class="knitsql-table">
 <table>
@@ -1103,13 +1110,13 @@ well.</p>
 <td align="left">1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">-0.2446352</td>
+<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
 <td align="right">2</td>
 <td align="right">2</td>
-<td align="right">-0.1480761</td>
+<td align="right">-1</td>
 </tr>
 </tbody>
 </table>
@@ -1123,14 +1130,18 @@ well.</p>
     id_c = 1:10,
     val_a = rnorm(10)
   ),
+  value_pkey = c(&quot;id_a&quot;, &quot;id_b&quot;, &quot;id_c&quot;),
   verbose = T
 )</code></pre>
-<pre><code>## Querying table primary key columns
-##   id_a,
+<pre><code>## Warning in if (is.na(value_pkey)) {: the condition has length &gt; 1 and only the
+## first element will be used</code></pre>
+<pre><code>##   id_a,
 ##   id_b,
 ##   id_c
-## Querying table column info
-##   val_a (numeric) NOT NULL
+## Querying table column info</code></pre>
+<pre><code>## Warning in dbColumnInfoExtended(conn, name): Auto-detection for identities and
+## auto-generated sequences not yet implemented for SQL Server.</code></pre>
+<pre><code>##   val_a (numeric) NOT NULL
 ## Columns being inserted: id_a, id_b, id_c, val_a
 ## Columns being updated: val_a
 ## Writing data to staging table: stage_upsert_comp_key
@@ -1179,61 +1190,61 @@ well.</p>
 <td align="left">1</td>
 <td align="right">1</td>
 <td align="right">1</td>
-<td align="right">1.0477117</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
 <td align="right">2</td>
 <td align="right">2</td>
-<td align="right">2.1079100</td>
+<td align="right">-1</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
 <td align="right">3</td>
 <td align="right">3</td>
-<td align="right">0.8231446</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
 <td align="right">4</td>
 <td align="right">4</td>
-<td align="right">0.5020193</td>
+<td align="right">-1</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
 <td align="right">5</td>
 <td align="right">5</td>
-<td align="right">1.7414338</td>
+<td align="right">2</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
 <td align="right">6</td>
 <td align="right">6</td>
-<td align="right">-1.1004277</td>
+<td align="right">-1</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
 <td align="right">7</td>
 <td align="right">7</td>
-<td align="right">-1.1587912</td>
+<td align="right">-2</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
 <td align="right">8</td>
 <td align="right">8</td>
-<td align="right">0.9291208</td>
+<td align="right">1</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
 <td align="right">9</td>
 <td align="right">9</td>
-<td align="right">-0.0523429</td>
+<td align="right">-1</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
 <td align="right">10</td>
 <td align="right">10</td>
-<td align="right">-0.0909079</td>
+<td align="right">1</td>
 </tr>
 </tbody>
 </table>
@@ -1250,10 +1261,10 @@ key column(s) in your value, the upsert will fail.</p>
   conn = db_con,
   name = &quot;upsert_one&quot;,
   value = data.frame(a = 1:10, b = rnorm(10)),
+  value_pkey = &quot;id&quot;,
   verbose = T
 )</code></pre>
-<pre><code>## Querying table primary key columns
-##   id</code></pre>
+<pre><code>##   id</code></pre>
 <pre><code>## Error in dbUpsertTable(conn = db_con, name = &quot;upsert_one&quot;, value = data.frame(a = 1:10, : Table primary key column(s) `id` was not provided.</code></pre>
 <p>We can see the same is true for the composite key table when not all
 columns that compose the key are provided.</p>
@@ -1264,10 +1275,12 @@ columns that compose the key are provided.</p>
     id_a = 1:10,
     val_a = rnorm(10)
   ),
+  value_pkey = c(&quot;id_a&quot;, &quot;id_b&quot;, &quot;id_c&quot;),
   verbose = T
 )</code></pre>
-<pre><code>## Querying table primary key columns
-##   id_a,
+<pre><code>## Warning in if (is.na(value_pkey)) {: the condition has length &gt; 1 and only the
+## first element will be used</code></pre>
+<pre><code>##   id_a,
 ##   id_b,
 ##   id_c</code></pre>
 <pre><code>## Error in dbUpsertTable(conn = db_con, name = &quot;upsert_comp_key&quot;, value = data.frame(id_a = 1:10, : Table primary key column(s) `id_b, id_c` was not provided.</code></pre>
@@ -1291,7 +1304,7 @@ then <code>dbUpdateTable()</code></li>
 <p>First, we’ll create a table that uses a generated identity:</p>
 <pre class="sql"><code>DROP TABLE IF EXISTS update_one;</code></pre>
 <pre class="sql"><code>CREATE TABLE update_one(
-    id INT GENERATED ALWAYS AS IDENTITY,
+    id INT IDENTITY(1,1),
     val_a NUMERIC NOT NULL,
     val_b NUMERIC NOT NULL
 );</code></pre>
@@ -1320,7 +1333,6 @@ but not creating a primary key:</p>
   name = &quot;update_one&quot;,
   value = data.frame(val_a = rnorm(10), val_b = rnorm(10))
 )</code></pre>
-<pre><code>## [1] 10</code></pre>
 <pre class="sql"><code>SELECT * FROM update_one</code></pre>
 <div class="knitsql-table">
 <table>
@@ -1335,53 +1347,53 @@ but not creating a primary key:</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">0.3565035</td>
-<td align="right">-0.5172414</td>
+<td align="right">1</td>
+<td align="right">2</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">-0.9738835</td>
-<td align="right">-0.0910314</td>
+<td align="right">-2</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">1.0385232</td>
-<td align="right">1.2915530</td>
+<td align="right">-1</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">-1.0334237</td>
-<td align="right">-1.1496190</td>
+<td align="right">-1</td>
+<td align="right">-1</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">0.3773331</td>
-<td align="right">1.3505281</td>
+<td align="right">-1</td>
+<td align="right">-1</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">-0.1870725</td>
-<td align="right">0.4701208</td>
+<td align="right">0</td>
+<td align="right">2</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">-3.0761890</td>
-<td align="right">1.2182175</td>
+<td align="right">2</td>
+<td align="right">-1</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">2.6549977</td>
-<td align="right">2.0397700</td>
+<td align="right">-1</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">0.4717961</td>
-<td align="right">-0.7434686</td>
+<td align="right">-1</td>
+<td align="right">-1</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">0.6656044</td>
-<td align="right">0.4410289</td>
+<td align="right">1</td>
+<td align="right">-1</td>
 </tr>
 </tbody>
 </table>
@@ -1393,21 +1405,22 @@ but not creating a primary key:</p>
 rows:</p>
 <pre class="r"><code>updated_data &lt;- data.frame(id = 1:5, val_b = rnorm(5))
 updated_data</code></pre>
-<pre><code>##   id      val_b
-## 1  1 -0.7956633
-## 2  2 -0.9846845
-## 3  3  1.0129808
-## 4  4 -0.6672234
-## 5  5  0.6984451</code></pre>
+<pre><code>##   id       val_b
+## 1  1  1.14926099
+## 2  2 -0.13190509
+## 3  3  1.06620790
+## 4  4 -1.39231082
+## 5  5 -0.08326152</code></pre>
 <pre class="r"><code>dbUpdateTable(
   conn = db_con,
   name = &quot;update_one&quot;,
   value = updated_data,
+  join_on = &quot;id&quot;,
   verbose = T
 )</code></pre>
-<pre><code>## Checking for identity column
-##   id
-## Columns to join by: id
+<pre><code>## Warning in dbColumnInfoExtended(conn, name): Auto-detection for identities and
+## auto-generated sequences not yet implemented for SQL Server.</code></pre>
+<pre><code>## Columns to join by: id
 ## Columns being updated: val_b
 ## Writing R data to staging table in SQL DB
 ## Generated SQL Update Command:
@@ -1434,53 +1447,53 @@ updated_data</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">0.3565035</td>
-<td align="right">-0.7956633</td>
+<td align="right">1</td>
+<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">-0.9738835</td>
-<td align="right">-0.9846845</td>
+<td align="right">-2</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">1.0385232</td>
-<td align="right">1.0129808</td>
+<td align="right">-1</td>
+<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">-1.0334237</td>
-<td align="right">-0.6672234</td>
+<td align="right">-1</td>
+<td align="right">-1</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">0.3773331</td>
-<td align="right">0.6984451</td>
+<td align="right">-1</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">-0.1870725</td>
-<td align="right">0.4701208</td>
+<td align="right">0</td>
+<td align="right">2</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">-3.0761890</td>
-<td align="right">1.2182175</td>
+<td align="right">2</td>
+<td align="right">-1</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">2.6549977</td>
-<td align="right">2.0397700</td>
+<td align="right">-1</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">0.4717961</td>
-<td align="right">-0.7434686</td>
+<td align="right">-1</td>
+<td align="right">-1</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">0.6656044</td>
-<td align="right">0.4410289</td>
+<td align="right">1</td>
+<td align="right">-1</td>
 </tr>
 </tbody>
 </table>
@@ -1491,20 +1504,21 @@ for both <code>val_a</code> and <code>val_b</code></p>
 <pre class="r"><code>updated_data &lt;- data.frame(id = 6:10, val_a = rnorm(5), val_b = rnorm(5))
 updated_data</code></pre>
 <pre><code>##   id      val_a       val_b
-## 1  6  0.7121637 -0.32170751
-## 2  7  1.3813540 -0.09211428
-## 3  8  0.8429166 -0.84952803
-## 4  9 -0.5470721  0.03569293
-## 5 10 -1.1659902  3.52201722</code></pre>
+## 1  6  0.4913294 -0.01350552
+## 2  7 -0.2273707  0.76044986
+## 3  8 -0.4392352 -0.08424991
+## 4  9 -0.6358877 -0.76155595
+## 5 10 -0.3438229  0.37168629</code></pre>
 <pre class="r"><code>dbUpdateTable(
   conn = db_con,
   name = &quot;update_one&quot;,
   value = updated_data,
+  join_on = &quot;id&quot;,
   verbose = T
 )</code></pre>
-<pre><code>## Checking for identity column
-##   id
-## Columns to join by: id
+<pre><code>## Warning in dbColumnInfoExtended(conn, name): Auto-detection for identities and
+## auto-generated sequences not yet implemented for SQL Server.</code></pre>
+<pre><code>## Columns to join by: id
 ## Columns being updated: val_a, val_b
 ## Writing R data to staging table in SQL DB
 ## Generated SQL Update Command:
@@ -1532,53 +1546,53 @@ updated_data</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">0.3565035</td>
-<td align="right">-0.7956633</td>
+<td align="right">1</td>
+<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">-0.9738835</td>
-<td align="right">-0.9846845</td>
+<td align="right">-2</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">1.0385232</td>
-<td align="right">1.0129808</td>
+<td align="right">-1</td>
+<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">-1.0334237</td>
-<td align="right">-0.6672234</td>
+<td align="right">-1</td>
+<td align="right">-1</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">0.3773331</td>
-<td align="right">0.6984451</td>
+<td align="right">-1</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">0.7121637</td>
-<td align="right">-0.3217075</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">1.3813540</td>
-<td align="right">-0.0921143</td>
+<td align="right">0</td>
+<td align="right">1</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">0.8429166</td>
-<td align="right">-0.8495280</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">-0.5470721</td>
-<td align="right">0.0356929</td>
+<td align="right">-1</td>
+<td align="right">-1</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">-1.1659902</td>
-<td align="right">3.5220172</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 </tbody>
 </table>
@@ -1594,7 +1608,6 @@ with an identity.</p>
   name = &quot;update_two&quot;,
   value = data.frame(id = 1:10, val_a = rnorm(10), val_b = rnorm(10))
 )</code></pre>
-<pre><code>## [1] 10</code></pre>
 <pre class="sql"><code>SELECT * FROM update_two ORDER BY id</code></pre>
 <div class="knitsql-table">
 <table>
@@ -1609,76 +1622,75 @@ with an identity.</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">0.1868124</td>
-<td align="right">-0.8125449</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">-0.2799278</td>
-<td align="right">0.9504034</td>
+<td align="right">-1</td>
+<td align="right">-1</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">-0.6771118</td>
-<td align="right">-0.3235484</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">1.7088848</td>
-<td align="right">-0.2611305</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">-0.9223875</td>
-<td align="right">-0.1046422</td>
+<td align="right">2</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">0.4978835</td>
-<td align="right">-1.8239503</td>
+<td align="right">-1</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">0.2635194</td>
-<td align="right">0.3417556</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">0.7882916</td>
-<td align="right">0.8564579</td>
+<td align="right">0</td>
+<td align="right">1</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">1.6416582</td>
-<td align="right">-0.0572946</td>
+<td align="right">-1</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">0.1437310</td>
-<td align="right">-0.6438696</td>
+<td align="right">-2</td>
+<td align="right">0</td>
 </tr>
 </tbody>
 </table>
 </div>
 <pre class="r"><code>updated_data &lt;- data.frame(id = 6:10, val_a = rnorm(5), val_b = rnorm(5))
 updated_data</code></pre>
-<pre><code>##   id      val_a      val_b
-## 1  6 -1.0428372 -0.9117056
-## 2  7  0.2249681  2.0057623
-## 3  8 -0.7405098  1.4241254
-## 4  9 -1.6290495 -1.1987972
-## 5 10 -0.4816220  0.5347550</code></pre>
+<pre><code>##   id       val_a       val_b
+## 1  6  1.18751044 -0.13483838
+## 2  7  0.32861051 -0.04633135
+## 3  8  0.55906534  0.07190290
+## 4  9  0.06815947 -0.09699287
+## 5 10 -0.18273064 -0.67595797</code></pre>
 <pre class="r"><code>dbUpdateTable(
   conn = db_con,
   name = &quot;update_two&quot;,
   value = updated_data,
+  join_on = &quot;id&quot;,
   verbose = T
 )</code></pre>
-<pre><code>## Checking for identity column
-## No identity column found
-## Querying table primary key columns
-##   id
-## Columns to join by: id
+<pre><code>## Warning in dbColumnInfoExtended(conn, name): Auto-detection for identities and
+## auto-generated sequences not yet implemented for SQL Server.</code></pre>
+<pre><code>## Columns to join by: id
 ## Columns being updated: val_a, val_b
 ## Writing R data to staging table in SQL DB
 ## Generated SQL Update Command:
@@ -1706,53 +1718,53 @@ updated_data</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">0.1868124</td>
-<td align="right">-0.8125449</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">-0.2799278</td>
-<td align="right">0.9504034</td>
+<td align="right">-1</td>
+<td align="right">-1</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">-0.6771118</td>
-<td align="right">-0.3235484</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">1.7088848</td>
-<td align="right">-0.2611305</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">-0.9223875</td>
-<td align="right">-0.1046422</td>
+<td align="right">2</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">-1.0428372</td>
-<td align="right">-0.9117056</td>
+<td align="right">1</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">0.2249681</td>
-<td align="right">2.0057623</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">-0.7405098</td>
-<td align="right">1.4241254</td>
+<td align="right">1</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">-1.6290495</td>
-<td align="right">-1.1987972</td>
+<td align="right">0</td>
+<td align="right">0</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">-0.4816220</td>
-<td align="right">0.5347550</td>
+<td align="right">0</td>
+<td align="right">-1</td>
 </tr>
 </tbody>
 </table>
@@ -1778,22 +1790,21 @@ columns to join on when performing an update.</p>
 
 customer_data</code></pre>
 <pre><code>##     tran_date customer_id val_a
-## 1  2022-06-18           1    10
-## 2  2022-06-18           2    92
-## 3  2022-06-19           1    47
-## 4  2022-06-19           2    57
-## 5  2022-06-20           1    19
-## 6  2022-06-20           2    87
-## 7  2022-06-21           1    50
-## 8  2022-06-21           2    26
-## 9  2022-06-22           1    25
-## 10 2022-06-22           2     9</code></pre>
+## 1  2022-06-18           1    45
+## 2  2022-06-18           2    14
+## 3  2022-06-19           1    55
+## 4  2022-06-19           2    24
+## 5  2022-06-20           1     9
+## 6  2022-06-20           2    21
+## 7  2022-06-21           1    93
+## 8  2022-06-21           2    74
+## 9  2022-06-22           1    60
+## 10 2022-06-22           2    62</code></pre>
 <pre class="r"><code>dbAppendTable(
   conn = db_con,
   name = &quot;update_three&quot;,
   value = customer_data
 )</code></pre>
-<pre><code>## [1] 10</code></pre>
 <pre class="sql"><code>SELECT * FROM update_three</code></pre>
 <div class="knitsql-table">
 <table>
@@ -1809,52 +1820,52 @@ customer_data</code></pre>
 <tr class="odd">
 <td align="left">2022-06-18</td>
 <td align="right">1</td>
-<td align="right">10</td>
+<td align="right">45</td>
 </tr>
 <tr class="even">
 <td align="left">2022-06-18</td>
 <td align="right">2</td>
-<td align="right">92</td>
+<td align="right">14</td>
 </tr>
 <tr class="odd">
 <td align="left">2022-06-19</td>
 <td align="right">1</td>
-<td align="right">47</td>
+<td align="right">55</td>
 </tr>
 <tr class="even">
 <td align="left">2022-06-19</td>
 <td align="right">2</td>
-<td align="right">57</td>
+<td align="right">24</td>
 </tr>
 <tr class="odd">
 <td align="left">2022-06-20</td>
 <td align="right">1</td>
-<td align="right">19</td>
-</tr>
-<tr class="even">
-<td align="left">2022-06-20</td>
-<td align="right">2</td>
-<td align="right">87</td>
-</tr>
-<tr class="odd">
-<td align="left">2022-06-21</td>
-<td align="right">1</td>
-<td align="right">50</td>
-</tr>
-<tr class="even">
-<td align="left">2022-06-21</td>
-<td align="right">2</td>
-<td align="right">26</td>
-</tr>
-<tr class="odd">
-<td align="left">2022-06-22</td>
-<td align="right">1</td>
-<td align="right">25</td>
-</tr>
-<tr class="even">
-<td align="left">2022-06-22</td>
-<td align="right">2</td>
 <td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-20</td>
+<td align="right">2</td>
+<td align="right">21</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-21</td>
+<td align="right">1</td>
+<td align="right">93</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-21</td>
+<td align="right">2</td>
+<td align="right">74</td>
+</tr>
+<tr class="odd">
+<td align="left">2022-06-22</td>
+<td align="right">1</td>
+<td align="right">60</td>
+</tr>
+<tr class="even">
+<td align="left">2022-06-22</td>
+<td align="right">2</td>
+<td align="right">62</td>
 </tr>
 </tbody>
 </table>
@@ -1869,11 +1880,11 @@ customer_data</code></pre>
 
 updated_data</code></pre>
 <pre><code>##    tran_date customer_id val_a
-## 1 2022-06-18           1   143
-## 2 2022-06-19           1   102
-## 3 2022-06-20           1   100
-## 4 2022-06-21           1   147
-## 5 2022-06-22           1   117</code></pre>
+## 1 2022-06-18           1   116
+## 2 2022-06-19           1   122
+## 3 2022-06-20           1   101
+## 4 2022-06-21           1   149
+## 5 2022-06-22           1   138</code></pre>
 <p>First, if we try to simple update the table without specifying
 <code>join_on</code>, we’ll encounter an error:</p>
 <pre class="r"><code>dbUpdateTable(
@@ -1882,10 +1893,12 @@ updated_data</code></pre>
   value = updated_data,
   verbose = T
 )</code></pre>
+<pre><code>## Warning in dbColumnInfoExtended(conn, name): Auto-detection for identities and
+## auto-generated sequences not yet implemented for SQL Server.</code></pre>
 <pre><code>## Checking for identity column
 ## No identity column found
 ## Querying table primary key columns</code></pre>
-<pre><code>## Error in .dbTablePkey(conn, name): Target table `update_three` has no primary key. Cannot do update.</code></pre>
+<pre><code>## Error in .dbTablePkey(conn, name): Cannot query for primary key in this RDBMS. You will need to manually specify `value_pkey` or `join_on`</code></pre>
 <p>Since there are no primary keys or identity columns to guess on, you
 must manually specify how to join:</p>
 <pre class="r"><code>dbUpdateTable(
@@ -1895,6 +1908,8 @@ must manually specify how to join:</p>
   join_on = c(&quot;tran_date&quot;, &quot;customer_id&quot;),
   verbose = T
 )</code></pre>
+<pre><code>## Warning in dbColumnInfoExtended(conn, name): Auto-detection for identities and
+## auto-generated sequences not yet implemented for SQL Server.</code></pre>
 <pre><code>## Columns to join by: tran_date, customer_id
 ## Columns being updated: val_a
 ## Writing R data to staging table in SQL DB
@@ -1923,52 +1938,52 @@ must manually specify how to join:</p>
 <tr class="odd">
 <td align="left">2022-06-18</td>
 <td align="right">1</td>
-<td align="right">143</td>
+<td align="right">116</td>
 </tr>
 <tr class="even">
 <td align="left">2022-06-18</td>
 <td align="right">2</td>
-<td align="right">92</td>
+<td align="right">14</td>
 </tr>
 <tr class="odd">
 <td align="left">2022-06-19</td>
 <td align="right">1</td>
-<td align="right">102</td>
+<td align="right">122</td>
 </tr>
 <tr class="even">
 <td align="left">2022-06-19</td>
 <td align="right">2</td>
-<td align="right">57</td>
+<td align="right">24</td>
 </tr>
 <tr class="odd">
 <td align="left">2022-06-20</td>
 <td align="right">1</td>
-<td align="right">100</td>
+<td align="right">101</td>
 </tr>
 <tr class="even">
 <td align="left">2022-06-20</td>
 <td align="right">2</td>
-<td align="right">87</td>
+<td align="right">21</td>
 </tr>
 <tr class="odd">
 <td align="left">2022-06-21</td>
 <td align="right">1</td>
-<td align="right">147</td>
+<td align="right">149</td>
 </tr>
 <tr class="even">
 <td align="left">2022-06-21</td>
 <td align="right">2</td>
-<td align="right">26</td>
+<td align="right">74</td>
 </tr>
 <tr class="odd">
 <td align="left">2022-06-22</td>
 <td align="right">1</td>
-<td align="right">117</td>
+<td align="right">138</td>
 </tr>
 <tr class="even">
 <td align="left">2022-06-22</td>
 <td align="right">2</td>
-<td align="right">9</td>
+<td align="right">62</td>
 </tr>
 </tbody>
 </table>
@@ -1990,6 +2005,8 @@ updated_data</code></pre>
   join_on = &quot;tran_date&quot;,
   verbose = T
 )</code></pre>
+<pre><code>## Warning in dbColumnInfoExtended(conn, name): Auto-detection for identities and
+## auto-generated sequences not yet implemented for SQL Server.</code></pre>
 <pre><code>## Columns to join by: tran_date
 ## Columns being updated: val_a
 ## Writing R data to staging table in SQL DB
@@ -2018,42 +2035,42 @@ updated_data</code></pre>
 <tr class="odd">
 <td align="left">2022-06-18</td>
 <td align="right">1</td>
-<td align="right">143</td>
+<td align="right">116</td>
 </tr>
 <tr class="even">
 <td align="left">2022-06-18</td>
 <td align="right">2</td>
-<td align="right">92</td>
+<td align="right">14</td>
 </tr>
 <tr class="odd">
 <td align="left">2022-06-19</td>
 <td align="right">1</td>
-<td align="right">102</td>
+<td align="right">122</td>
 </tr>
 <tr class="even">
 <td align="left">2022-06-19</td>
 <td align="right">2</td>
-<td align="right">57</td>
+<td align="right">24</td>
 </tr>
 <tr class="odd">
 <td align="left">2022-06-20</td>
 <td align="right">1</td>
-<td align="right">100</td>
+<td align="right">101</td>
 </tr>
 <tr class="even">
 <td align="left">2022-06-20</td>
 <td align="right">2</td>
-<td align="right">87</td>
+<td align="right">21</td>
 </tr>
 <tr class="odd">
 <td align="left">2022-06-21</td>
 <td align="right">1</td>
-<td align="right">147</td>
+<td align="right">149</td>
 </tr>
 <tr class="even">
 <td align="left">2022-06-21</td>
 <td align="right">2</td>
-<td align="right">26</td>
+<td align="right">74</td>
 </tr>
 <tr class="odd">
 <td align="left">2022-06-22</td>

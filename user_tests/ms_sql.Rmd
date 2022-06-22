@@ -1,7 +1,7 @@
 ---
 title: "MS SQL"
 author: "Tyler Neumann"
-date: "5/1/2022"
+date: "2022-06-23"
 output: html_document
 ---
 
@@ -73,4 +73,467 @@ dbWriteTable(
 
 ```{r read_table}
 dbReadTable(db_con, "test_one")
+```
+
+# Set up Test Table #
+
+Standard SQL table.
+
+```{sql, connection = db_con}
+DROP TABLE IF EXISTS upsert_one;
+```
+
+```{sql, connection = db_con}
+CREATE TABLE upsert_one (
+    id INT NOT NULL,
+    val_a NUMERIC NOT NULL,
+    val_b VARCHAR(512) NULL,
+    PRIMARY KEY (id)
+);
+```
+
+A SQL table with spaces in names.
+
+```{sql, connection = db_con}
+DROP TABLE IF EXISTS "upsert two";
+```
+
+```{sql, connection = db_con}
+CREATE TABLE "upsert two" (
+    id INT NOT NULL,
+    "val a" NUMERIC NOT NULL,
+    "val b" VARCHAR(512) NULL,
+    PRIMARY KEY (id)
+);
+```
+
+A table with composite primary keys.
+
+```{sql, connection = db_con}
+DROP TABLE IF EXISTS upsert_comp_key;
+```
+
+```{sql, connection = db_con}
+CREATE TABLE upsert_comp_key (
+  id_a INT NOT NULL,
+  id_b INT NOT NULL,
+  id_c INT NOT NULL,
+  val_a NUMERIC NOT NULL,
+  PRIMARY KEY (id_a, id_b, id_c)
+)
+```
+
+Populate tables with some simple data.
+
+```{r}
+test_one <- df1
+names(test_one) <- c("id", "val_a")
+dbAppendTable(db_con, "upsert_one", test_one)
+
+test_two <- df1
+names(test_two) <- c("id", "val a")
+dbAppendTable(db_con, "upsert two", test_two)
+```
+# Validate Internals #
+
+First, let's see what the data looks like currently in the SQL database.
+
+```{sql, connection = db_con}
+SELECT * FROM upsert_one
+```
+
+## Upsert with updates only ##
+
+Now, we'll run an upsert command that only performs updates. We will not pass any new values to insert. We will run with verbose on so we can see how the package is interacting with the SQL database.
+
+```{r}
+dbUpsertTable(
+  conn = db_con,
+  name = "upsert_one",
+  value = data.frame(id = 1:10, val_a = rnorm(10)),
+  value_pkey = "id",
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM upsert_one
+```
+
+When we try to upsert a table, and the dataframe in R contains columns that do not exist in the SQL table, the function will remove those columns from the dataframe value before staging the data.
+
+```{r}
+dbUpsertTable(
+  conn = db_con,
+  name = "upsert_one",
+  value = data.frame(
+    id = 1:10,
+    val_a = 1:10,
+    val_b = 1:10,
+    val_c = 1:10,
+    val_d = 1:10
+  ),
+  value_pkey = "id",
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM upsert_one
+```
+
+## True Upsert ##
+
+Next, we'll try adding new rows to our dataframe that do not exist in SQL yet, and we can observe that it will INSERT the new data, and update the existing data.
+
+```{r}
+dbUpsertTable(
+  conn = db_con,
+  name = "upsert_one",
+  value = data.frame(id = 6:15, val_a = rnorm(10)),
+  value_pkey = "id"
+)
+```
+
+```{sql, connection = db_con, max.print = 25}
+SELECT * FROM upsert_one
+```
+
+### Upsert to table with spaces ###
+
+We can observe this works equally well with SQL tables that have spaces in the table and column names. However, for the internals to work correctly, the table object in the R environment must also have valid names with spaces in them. Base R's data.frame does not allow spaces in the column names, however `data.table` does. Therefore, we can pass a `data.table` as the value and it will succeed.
+
+```{sql, connection = db_con, max.print = 25}
+SELECT * FROM "upsert two";
+```
+
+```{r}
+dbUpsertTable(
+  conn = db_con,
+  name = "upsert two",
+  value = data.table::data.table(id = 6:15, `val a` = rnorm(10)),
+  value_pkey = "id",
+  verbose = T
+)
+```
+
+```{sql, connection = db_con, max.print = 25}
+SELECT * FROM "upsert two";
+```
+
+### Upsert table with composite key ###
+
+Again, we can see the function handles composite primary keys equally well.
+
+```{r}
+dbAppendTable(
+  conn = db_con,
+  name = "upsert_comp_key",
+  value = data.frame(
+    id_a = 1:2,
+    id_b = 1:2,
+    id_c = 1:2,
+    val_a = rnorm(2)
+  )
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM upsert_comp_key;
+```
+
+```{r}
+dbUpsertTable(
+  conn = db_con,
+  name = "upsert_comp_key",
+  value = data.frame(
+    id_a = 1:10,
+    id_b = 1:10,
+    id_c = 1:10,
+    val_a = rnorm(10)
+  ),
+  value_pkey = c("id_a", "id_b", "id_c"),
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM upsert_comp_key;
+```
+
+# Failure Cases #
+
+If the table you are trying to upsert to does not contain a primary key, then it will fail. Conversely, if you do not provide the primary key column(s) in your value, the upsert will fail.
+
+```{r, error = TRUE}
+dbUpsertTable(
+  conn = db_con,
+  name = "upsert_one",
+  value = data.frame(a = 1:10, b = rnorm(10)),
+  value_pkey = "id",
+  verbose = T
+)
+```
+
+We can see the same is true for the composite key table when not all columns that compose the key are provided.
+
+```{r, error = TRUE}
+dbUpsertTable(
+  conn = db_con,
+  name = "upsert_comp_key",
+  value = data.frame(
+    id_a = 1:10,
+    val_a = rnorm(10)
+  ),
+  value_pkey = c("id_a", "id_b", "id_c"),
+  verbose = T
+)
+```
+
+# Update Table #
+
+Alternatively, there may be instances where you need to simply update a SQL table with data from an R table. There are several scenarios where you may require this:
+
+- The target table in SQL does not have a primary key
+- The target table in SQL uses an identity/sequence or otherwise auto-generated key
+    - In this case, you would first `dbAppendTable()` new data, then `dbUpdateTable()`
+- You want to update the table and join on arbitrary columns
+
+Let's set up some of these scenarios.
+
+First, we'll create a table that uses a generated identity:
+
+```{sql, connection = db_con}
+DROP TABLE IF EXISTS update_one;
+```
+
+```{sql, connection = db_con}
+CREATE TABLE update_one(
+    id INT IDENTITY(1,1),
+    val_a NUMERIC NOT NULL,
+    val_b NUMERIC NOT NULL
+);
+```
+
+Second, we'll create a table with a primary key instead of a generated identity:
+
+```{sql, connection = db_con}
+DROP TABLE IF EXISTS update_two;
+```
+
+```{sql, connection = db_con}
+CREATE TABLE update_two(
+    id INT NOT NULL,
+    val_a NUMERIC NOT NULL,
+    val_b NUMERIC NOT NULL,
+    PRIMARY KEY (id)
+);
+```
+
+Third, we'll create a table and be lazy about creating a primary key, but not creating a primary key:
+
+```{sql, connection = db_con}
+DROP TABLE IF EXISTS update_three;
+```
+
+```{sql, connection = db_con}
+CREATE TABLE update_three(
+    tran_date DATE NOT NULL,
+    customer_id INT NOT NULL,
+    val_a INT NOT NULL
+);
+```
+
+## Updating a table with identity column ##
+
+Let's seed our table with some sample data first:
+
+```{r}
+dbAppendTable(
+  conn = db_con,
+  name = "update_one",
+  value = data.frame(val_a = rnorm(10), val_b = rnorm(10))
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_one
+```
+
+Notice in this scenario we did not attempt to define the `id` column, since this table will always generate the `id` for us.
+
+Let's say we have a new value for `val_b` for the first 5 rows:
+
+```{r}
+updated_data <- data.frame(id = 1:5, val_b = rnorm(5))
+updated_data
+```
+
+```{r}
+dbUpdateTable(
+  conn = db_con,
+  name = "update_one",
+  value = updated_data,
+  join_on = "id",
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_one ORDER BY id
+```
+
+There's also no limitation on how many column values can be updated at once. 
+Let's run the update again, but this time provide new values for both `val_a` and `val_b`
+
+```{r}
+updated_data <- data.frame(id = 6:10, val_a = rnorm(5), val_b = rnorm(5))
+updated_data
+```
+
+```{r}
+dbUpdateTable(
+  conn = db_con,
+  name = "update_one",
+  value = updated_data,
+  join_on = "id",
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_one ORDER BY id
+```
+
+## Updating a table with a primary key ##
+
+This will work very similarly to updating a table with an identity.
+We'll simply replicate the second scenario we performed for the table with an identity.
+
+```{r}
+dbAppendTable(
+  conn = db_con,
+  name = "update_two",
+  value = data.frame(id = 1:10, val_a = rnorm(10), val_b = rnorm(10))
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_two ORDER BY id
+```
+
+```{r}
+updated_data <- data.frame(id = 6:10, val_a = rnorm(5), val_b = rnorm(5))
+updated_data
+```
+
+```{r}
+dbUpdateTable(
+  conn = db_con,
+  name = "update_two",
+  value = updated_data,
+  join_on = "id",
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_two ORDER BY id
+```
+
+## Updating a table without an identity or primary key ##
+
+It's not completely atypical to have a table without any primary keys or identities, but definitely best practice. 
+However, even if you do have a table with identity/pkey, you may still want to update a table using an arbitrary set of join conditions.
+You may manually specify the columns to join on when performing an update.
+
+Let's stage the scenario for this:
+
+```{r}
+customer_data <- data.frame(
+  tran_date = seq.Date(from = (Sys.Date() - 4), to = Sys.Date(), by = "day") |>
+    as.character() |>
+    lapply(rep, times = 2) |>
+    unlist() |>
+    as.Date(),
+  customer_id = rep(1:2,5),
+  val_a = sample(1:100, 10, TRUE)
+)
+
+customer_data
+```
+
+```{r}
+dbAppendTable(
+  conn = db_con,
+  name = "update_three",
+  value = customer_data
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_three
+```
+
+Now let's update some specific values by customer **and** date.
+
+```{r}
+updated_data <- data.frame(
+  tran_date = seq.Date(from = (Sys.Date() - 4), to = Sys.Date(), by = "day"),
+  customer_id = rep(1,5),
+  val_a = sample(100:150, 5, TRUE)
+)
+
+updated_data
+```
+First, if we try to simple update the table without specifying `join_on`, we'll encounter an error:
+
+```{r, error = TRUE}
+dbUpdateTable(
+  conn = db_con,
+  name = "update_three",
+  value = updated_data,
+  verbose = T
+)
+```
+
+Since there are no primary keys or identity columns to guess on, you must manually specify how to join:
+
+```{r}
+dbUpdateTable(
+  conn = db_con,
+  name = "update_three",
+  value = updated_data,
+  join_on = c("tran_date", "customer_id"),
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_three ORDER BY tran_date, customer_id
+```
+
+Alternatively, you can use this to update a set of records with the same value:
+
+```{r}
+updated_data <- data.frame(
+  tran_date = Sys.Date(),
+  val_a = 0
+)
+
+updated_data
+```
+
+```{r}
+dbUpdateTable(
+  conn = db_con,
+  name = "update_three",
+  value = updated_data,
+  join_on = "tran_date",
+  verbose = T
+)
+```
+
+```{sql, connection = db_con}
+SELECT * FROM update_three ORDER BY tran_date, customer_id
 ```

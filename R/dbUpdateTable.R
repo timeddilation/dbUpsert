@@ -23,7 +23,7 @@ dbUpdateTable <- function(
   overwrite_stage_table = TRUE,
   verbose = FALSE
 ) {
-  # TODO: Check if table has non-updatable columns, remove these from upsert statement
+  # TODO: Check if table has non-updatable columns, remove these from update part of the upsert statement
 
   ##############################################################################
   # check if table exists

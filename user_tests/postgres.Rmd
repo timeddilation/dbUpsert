@@ -1,7 +1,7 @@
 ---
 title: "Postgresql"
 author: "Tyler Neumann"
-date: "2022-06-22"
+date: "2022-06-23"
 output: html_document
 ---
 
@@ -86,10 +86,10 @@ DROP TABLE IF EXISTS upsert_one;
 
 ```{sql, connection = db_con}
 CREATE TABLE upsert_one (
-    id INT NOT NULL
-        CONSTRAINT upsert_one_pkey PRIMARY KEY,
+    id INT NOT NULL,
     val_a NUMERIC NOT NULL,
-    val_b VARCHAR(512) NULL
+    val_b VARCHAR(512) NULL,
+    PRIMARY KEY (id)
 );
 ```
 
@@ -101,10 +101,10 @@ DROP TABLE IF EXISTS "upsert two";
 
 ```{sql, connection = db_con}
 CREATE TABLE "upsert two" (
-    id INT NOT NULL
-        CONSTRAINT upsert_two_pkey PRIMARY KEY,
+    id INT NOT NULL,
     "val a" NUMERIC NOT NULL,
-    "val b" VARCHAR(512) NULL
+    "val b" VARCHAR(512) NULL,
+    PRIMARY KEY (id)
 );
 ```
 
@@ -317,10 +317,10 @@ DROP TABLE IF EXISTS update_two;
 
 ```{sql, connection = db_con}
 CREATE TABLE update_two(
-    id INT NOT NULL
-      CONSTRAINT update_two_pkey PRIMARY KEY,
+    id INT NOT NULL,
     val_a NUMERIC NOT NULL,
-    val_b NUMERIC NOT NULL
+    val_b NUMERIC NOT NULL,
+    PRIMARY KEY (id)
 );
 ```
 

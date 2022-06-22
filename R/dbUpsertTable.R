@@ -10,6 +10,7 @@
 #' @param conn A DBI Connection Object
 #' @param name A table name in the DB to upsert to
 #' @param value A dataframe object containing data to upsert
+#' @param value_pkey A character vector of column names that form the SQL table primary key. For supported SQL backends, this is queried for you. Otherwise, you will have to manually specify.
 #' @param staging_table A string of the table name to create to stage data. If not provided, a new table name will be generated.
 #' @param overwrite_stage_table A boolean indicating if you want to drop the staging table (if it already exists). If it does already exist, and this value is `false`, then the upsert will fail.
 #' @param verbose A boolean indicating whether or not to print steps executed in the console
@@ -18,6 +19,7 @@ dbUpsertTable <- function(
   conn,
   name,
   value,
+  value_pkey = NA,
   stage_table = paste0("stage_", name),
   overwrite_stage_table = TRUE,
   verbose = FALSE
@@ -34,10 +36,12 @@ dbUpsertTable <- function(
   ##############################################################################
   # Get primary key column(s) from table
   ##############################################################################
-  if (verbose == TRUE) {
-    cat("Querying table primary key columns\n")
+  if (is.na(value_pkey)) {
+    if (verbose == TRUE) {
+      cat("Querying table primary key columns\n")
+    }
+    value_pkey <- .dbTablePkey(conn, name)
   }
-  value_pkey <- .dbTablePkey(conn, name)
 
   if (verbose == TRUE) {
     cat(paste0(
