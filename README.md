@@ -28,6 +28,17 @@ tracking primary keys differently, and this makes the fully ANSI SQL
 version difficult to accomplish. Eventually, compromises will be made,
 with richer feature sets for the supported RDBMS’s.
 
+## Installation
+
+Currently, this package is only available by installing from github, or
+building from source. To install from github, you must first have the
+`devtools` package installed.
+
+``` r
+library(devtools)
+install_github("timeddilation/dbUpsert")
+```
+
 ## Details
 
 The functions contained in this package handle the interactions with the
