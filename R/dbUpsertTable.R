@@ -22,9 +22,6 @@ dbUpsertTable <- function(
   overwrite_stage_table = TRUE,
   verbose = FALSE
 ) {
-  # TODO: Separate function to check if a table can be upserted
-  ## report all reasons why it can or cannot
-  # TODO: Check db version before executing. Syntax used is only available in certain versions.
   # TODO: Check if table has non-updatable columns, remove these from upsert statement
 
   ##############################################################################
