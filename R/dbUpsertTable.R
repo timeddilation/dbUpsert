@@ -199,7 +199,7 @@ dbUpsertTable <- function(
   ##############################################################################
   # create upsert statement, cat if verbose, send statement
   ##############################################################################
-  upsert_statement <- .dbUpsertStatement(
+  upsert_statements <- .dbUpsertStatement(
     conn = conn,
     target_table = name,
     staging_table = stage_table,
@@ -211,16 +211,22 @@ dbUpsertTable <- function(
   if (verbose == TRUE) {
     cat(paste0(
       "Generated SQL Upsert Command:\n<SQL>\n",
-      upsert_statement,
+      upsert_statements[[1]], "\n",
+      upsert_statements[[2]],
       "\n</SQL>\n"
     ))
   }
 
-  upsert_res <- dbSendStatement(
+  dbWithTransaction(
     conn = conn,
-    statement = upsert_statement
+    {
+      update_res <- dbSendStatement(conn, upsert_statements[[1]])
+      dbClearResult(update_res)
+
+      insert_res <- dbSendStatement(conn, upsert_statements[[2]])
+      dbClearResult(insert_res)
+    }
   )
-  dbClearResult(upsert_res)
 
   ##############################################################################
   # Drop staging table

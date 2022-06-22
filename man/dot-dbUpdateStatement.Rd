@@ -26,4 +26,5 @@
 \description{
 This function should never be called directly.
 It is an internal function to the package.
+Generates ANSI compliant SQL statement to update existing records from another table.
 }

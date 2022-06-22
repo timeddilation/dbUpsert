@@ -27,5 +27,11 @@
 \item{update_cols}{A character vector of column names to update, should exclude the PKs}
 }
 \description{
-Generate Upsert SQL Statement
+This function should never be called directly.
+It is an internal function to the package.
+Generates ANSI compliant SQL statements to update existing records, and insert new records.
+This function returns a list of 2 SQL statements.
+The first element of text in the list is the SQL UPDATE statement.
+The second element of text in the list is the SQL INSERT statement.
+It is intended that both statements are sent in the same transaction.
 }
