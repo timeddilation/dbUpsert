@@ -1,7 +1,7 @@
 Package: dbUpsert
 Type: Package
 Title: SQL DB Update-And-Insert (upsert)
-Version: 0.1.0
+Version: 0.1.1
 Author: Tyler Neumann
 Maintainer: Tyler Neumann <neumanntylers@gmail.com>
 Description: This package leverages RDBMS specific implementations to handle Upserts.
