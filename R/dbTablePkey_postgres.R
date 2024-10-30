@@ -4,6 +4,13 @@
 #' @param name A table name in the DB
 
 .dbTablePkey_postgres <- function(conn, name) {
+  # get the current search paths
+  search_path <- dbGetQuery(conn, "SHOW SEARCH_PATH")[1, 1]
+  # remove the search path named the current user
+  search_path <- gsub('"$user", ', '', search_path, fixed = TRUE)
+  # remove subsequent search paths, only searching the first
+  search_path <- gsub(',.+', '', search_path)
+
   dbGetQuery(
     conn = conn,
     statement = "
@@ -16,7 +23,8 @@
           AND tc.table_name = c.table_name
           AND ccu.column_name = c.column_name
       WHERE constraint_type = 'PRIMARY KEY'
-      AND tc.table_name = $1",
-    params = name
+      AND tc.table_name = $1
+      AND tc.table_schema = $2",
+    params = list(name, search_path)
   )$column_name
 }

@@ -12,5 +12,6 @@
 \item{name}{A table name in the DB}
 }
 \description{
-Gets Primary Key from a SQL Table
+For Postgres, only tables in the first schema in the search path is searched.
+The schema with the name matching the user is ignored, use explicit search path names instead.
 }
